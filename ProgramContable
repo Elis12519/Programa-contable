@@ -1,0 +1,3434 @@
+#include <stdio.h>
+#include <conio.h>
+#include <string.h>
+#include <windows.h>
+#include <stdlib.h>
+#define color SetConsoleTextAttribute
+#define N 83
+#define MAX_ACTIVOS 100
+#include <time.h>
+#include <unistd.h>
+
+#define RESET_COLOR "\x1b[0m"
+#define AZUL_T "\x1b[34m"
+#define ROJO_T "\x1b[31m"
+#define MAGENTA_T "\x1b[35m"
+#define VERDE_T "\x1b[32m"
+#define CYAN_T "\x1b[36m"
+#define AMARILLO_T "\x1b[33m"
+#define MAGENTA_F "\x1b[45m"
+
+struct cuentas1{
+	char codigo1[30];
+	char cuenta[100];
+	float debe[20];
+	float haber[20];
+	float saldodeudor;
+	float saldoacreedor;  
+};
+void gotoxy(int x, int y) {
+    HANDLE hcon;
+    hcon = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD dwPos;
+    dwPos.X = x;
+    dwPos.Y = y;
+    SetConsoleCursorPosition(hcon, dwPos);
+}
+void margen2()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf("%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf("%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf("%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf("%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+   x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf("%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf("%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c", 217);
+
+}
+void margen1(int x1,int y1,int x2,int y2){
+  int x,y;
+  char tipo1,tipo2,tipo3,tipo4,tipo5,tipo6;
+  tipo1='º';
+  tipo2='Í';
+  tipo3='»';
+  tipo4='È';
+  tipo5='É';
+  tipo6='¼';
+  for(x=x1;x<=x2;x++){
+    gotoxy(x,y1);printf("%c",tipo2);
+    gotoxy(x,y2);printf("%c",tipo2);
+  }
+  for(y=y1;y<=y2;y++){
+    gotoxy(x1,y);printf("%c",tipo1);
+    gotoxy(x2,y);printf("%c",tipo1);
+  }
+  gotoxy(x2,y1);printf("%c",tipo3);
+  gotoxy(x1,y2);printf("%c",tipo4);
+  gotoxy(x2,y2);printf("%c",tipo6);
+  gotoxy(x1,y1);printf("%c",tipo5);
+}
+
+//-----------------------DEPRECIACION-----------------------
+void marcoN(int x1, int y1, int x2, int y2) {
+    int x, y;
+  
+    for (x = x1; x < x2; x++) {
+        gotoxy(x, y1);
+        printf("%c", 175);
+        gotoxy(x, y2);
+        printf("%c", 175);
+    } 
+
+    for (y = y1; y < y2; y++) {
+        gotoxy(x1, y);
+        printf("%c", 175);
+        gotoxy(x2, y);
+        printf("%c", 175);
+    } 
+}
+
+typedef struct {
+    char nombre[50];
+    int identificador;
+    char ubicacion[100];
+    float moi;
+    int vida_util;
+    float valor_residual;
+    float depreciacion_anual;
+    float depreciacion_mensual;
+    float depreciacion_acumulada;
+    float saldo_en_libros;
+} Activo;
+
+void pausa() {
+    gotoxy(50, 25); printf(VERDE_T"Presione una tecla para continuar..."RESET_COLOR);
+    getch();
+}
+void imprimirTablaCompleta(Activo *activos, int numActivos) {
+    int i;
+    gotoxy(37, 3);printf("                                                                ");
+    gotoxy(64, 7);printf(AMARILLO_T"%c",224);
+    gotoxy(45, 6);printf("TABLA DE DEPRECIACION DE ACTIVOS NO CIRCULARES\n\n"RESET_COLOR);
+    gotoxy(55,7); printf(ROJO_T"INFORMATICA S.A de C.V \n"RESET_COLOR);
+    //gotoxy(10, 10);
+    printf("\n\t%-18s  %-15s  %-15s  %-15s  %-15s  %-15s  %-15s  %-15s \n",
+           "Nombre y fecha", "Identificador", "Ubicacion", "MOI", "Dep. Anual", "Dep. Mensual", "Saldo en lib", "Dep. Acumulada");
+
+
+    for (i = 0; i < numActivos; i++) {
+        Activo *a = &activos[i];
+        a->depreciacion_acumulada += a->depreciacion_mensual;
+        a->saldo_en_libros -= a->depreciacion_anual;
+        printf("\n\t %-18s  %-15d  %-15s  %-15.2f  %-15.2f  %-15.2f  %-15.2f  %-15.2f \n",
+               a->nombre, a->identificador, a->ubicacion, a->moi,
+               a->depreciacion_anual, a->depreciacion_mensual, a->saldo_en_libros, a->depreciacion_acumulada);
+    }
+}
+void imprimirTitulo() {
+    gotoxy(37, 3);
+    printf(AMARILLO_T"TABLA DE DEPRECIACION DE ACTIVOS FIJOS NO CIRCULARES");
+     gotoxy(56,3);printf("%c"RESET_COLOR,224);
+}
+
+void margenN()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf(MAGENTA_T"%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf(MAGENTA_T"%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf(MAGENTA_T"%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf(MAGENTA_T"%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+    x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf(MAGENTA_T"%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf(MAGENTA_T"%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c"RESET_COLOR, 217);
+    
+    x = 44;
+    gotoxy(x, 6);
+    printf(MAGENTA_T"%c", 218);
+    gotoxy(x, 8);
+    printf("%c"RESET_COLOR, 192);
+
+    for (x = 45; x <= 80; x++)
+    {
+        gotoxy(x, 6);
+        printf(MAGENTA_T"%c", 196);
+        gotoxy(x, 8);
+        printf("%c", 196);
+    }
+    gotoxy(44,7);
+    printf(MAGENTA_T"%c", 179);
+    gotoxy(81,7);
+    printf("%c", 179);
+    gotoxy(81,6);
+    printf("%c", 191);
+    gotoxy(81,8);
+    printf("%c"RESET_COLOR, 217);
+
+}
+void ingresarDatos(Activo *activos, int contador) {
+    char linea[100];
+    
+    ////Datos a ingresar
+    gotoxy(50, 3);printf(AMARILLO_T"[ DATOS DEL NUEVO ACTIVO ]"RESET_COLOR);
+    gotoxy(26, 6);printf(CYAN_T"- Ingrese el nombre y fecha del bien (ejemplo: 'Nombre - AAAA-MM-DD'): "RESET_COLOR);
+    gotoxy(29,8);printf("__________________________________________________");
+    gotoxy(26,11);printf(CYAN_T"- Ingrese la ubicación o resguardo: ");
+    gotoxy(46,11);printf("%c"RESET_COLOR,162);
+    gotoxy(29,13);printf("__________________________________________________");
+    gotoxy(26,16);printf(CYAN_T"- Ingrese el MOI: "RESET_COLOR);
+    gotoxy(29,18);printf("__________________________________________________");
+    gotoxy(26,21);printf(CYAN_T"- Ingrese la vida útil (en años): ");
+    gotoxy(44,21);printf("%c",163);
+    gotoxy(54,21);printf("%c"RESET_COLOR,164);
+    gotoxy(29,23);printf("__________________________________________________");
+    
+    
+    gotoxy(29,7);gets(activos[contador].nombre);
+    
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    activos[contador].identificador = (activos[contador].nombre[0] << 8) | activos[contador].nombre[1];
+    sprintf(activos[contador].ubicacion, "%c%c_%04d%02d%02d",
+            activos[contador].nombre[0], activos[contador].nombre[1],
+            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+    //ubicación
+    gotoxy(29,12);gets(activos[contador].ubicacion);
+    //Moi
+    gotoxy(29,17);fgets(linea, 100, stdin);
+    sscanf(linea, "%f", &activos[contador].moi);
+    //vida util
+    gotoxy(29,22);fgets(linea, 100, stdin);
+    sscanf(linea, "%d", &activos[contador].vida_util);
+
+    activos[contador].depreciacion_anual = (activos[contador].moi) / activos[contador].vida_util;
+    activos[contador].depreciacion_mensual = activos[contador].depreciacion_anual / 12;
+    activos[contador].depreciacion_acumulada = 0; // Inicializa la depreciación acumulada aquí
+    activos[contador].saldo_en_libros = activos[contador].moi; // Inicializa el saldo en libros con el MOI
+}
+
+void mensajeBienvenida() {
+    system("cls");
+    marcoN(20, 1, 112, 26);
+    gotoxy(45, 3);
+    printf(AMARILLO_T"BIENVENIDO A LA TABLA DE DEPRECIACIÓN");
+    gotoxy(80,3);printf("%c",224);
+    gotoxy(52, 7);
+    printf(AMARILLO_T"  Consideraciones:"RESET_COLOR);
+    gotoxy(45, 10);
+    printf("  - Usa espacios en nombres.         ");
+    gotoxy(45, 12);
+    printf("  - Simplifica los nombres de bienes.");
+    gotoxy(45, 14);
+    printf("  - Lee cuidadosamente las instrucciones.");
+    gotoxy(45,16);
+    printf("  -Para la división de la fecha puedes usar / o -");
+    gotoxy(62, 16);printf("%c",162);
+    gotoxy(43, 20);
+    printf(CYAN_T"  - Si tienes alguna duda, notifícala al equipo. ");
+    gotoxy(75, 20);printf("%c"RESET_COLOR,161);
+    gotoxy(50, 24);
+    printf(VERDE_T"Presiona una tecla para comenzar..."RESET_COLOR);
+    getch();
+    system("cls");
+}
+
+void mensajeDespedida() {
+	int i;
+    printf(ROJO_T);
+    for ( i = 0; i < 5; i++) {
+        system("cls");
+        gotoxy(45, 17);
+        printf(ROJO_T"Gracias por usar el programa");
+        Sleep(500);
+        system("cls");
+        Sleep(500);
+    }
+    printf(RESET_COLOR);
+}
+
+void ejecutarPrograma() {
+    mensajeBienvenida();
+    Activo misActivos[MAX_ACTIVOS];
+    int opcion = 0;
+    int contador = 0;
+
+    margenN();
+    gotoxy(45, 3);
+    printf(AMARILLO_T"BIENVENIDO A LA TABLA DE DEPRECIACIÓN");
+    gotoxy(80,3);printf("%c",224);
+    gotoxy(50, 7);
+    printf("CONTABILIDAD Y FINANZAS"RESET_COLOR);
+    gotoxy(45, 10);printf("A cargo de: Virginia Reyes Borques");
+    gotoxy(57, 15);
+    printf(CYAN_T"Equipo:"RESET_COLOR);
+    gotoxy(50, 17);printf(">> Allan Daniel Cruz Matías");
+    gotoxy(74, 17);printf("%c",161);
+    gotoxy(50, 19);printf(">> Nélida López Cruz");
+    gotoxy(54,19);printf("%c",130);
+    gotoxy(61,19);printf("%c",162);
+    gotoxy(50, 21);printf(">> Lizeth Elisa Sánchez Jiménez");
+    gotoxy(67, 21);printf("%c",160);
+    gotoxy(77, 21);printf("%c",130);
+    gotoxy(47,22);
+    pausa();
+
+    do {
+        system("cls");
+        margenN();
+        imprimirTitulo();
+        
+        gotoxy(59, 7);
+        printf(AMARILLO_T"MENÚ:");
+        gotoxy(62, 7);printf("%c"RESET_COLOR,233);
+        gotoxy(50, 12);
+        printf("1. Ingresar un nuevo activo\n");
+        gotoxy(50, 14);
+        printf("2. Mostrar tabla completa\n");
+        gotoxy(50, 16);
+        printf("3. Salir\n");
+        gotoxy(50, 18);
+        printf(CYAN_T"Seleccione una opcion: ");
+        gotoxy(69, 18);printf("%c"RESET_COLOR,162);
+        gotoxy(74, 18);scanf("%d", &opcion);
+        getchar();
+        system("cls");
+
+        switch (opcion) {
+            case 1:
+                margenN();
+                gotoxy(44,6);printf("                                                  ");
+                gotoxy(44,8);printf("                                                  ");
+                gotoxy(44,7);printf("                                                   ");
+                
+                if (contador < MAX_ACTIVOS) {
+                    ingresarDatos(misActivos, contador);
+                    contador++;
+                } else {
+                    printf("¡Limite de activos alcanzado!\n");
+                }
+                break;
+            case 2:
+                marcoN(1,6,147,9);
+                marcoN(1,9,147,36);
+                imprimirTitulo();
+                if (contador > 0) {
+                    imprimirTablaCompleta(misActivos, contador);
+                    marcoN(1,11,147,36);
+                    marcoN(26,9,43,36);
+                    marcoN(60,9,77,36);
+                    marcoN(94,9,111,36);
+                    marcoN(128,9,128,36);
+                    getch();
+                } else {
+                    gotoxy(55,20);printf("NO HAY ACTIVOS INGRESADOS.[  ]\b\b");
+                    getch();
+                }
+                break;
+            case 3:
+                printf("Saliendo del programa.\n");
+                printf(ROJO_T);
+                mensajeDespedida(); 
+                system("cls");  
+                Sleep(1000);
+                break;
+            default:
+                printf("Opción no válida. Intente de nuevo.\n");
+        }
+        if (opcion != 3) {
+            gotoxy(45, 20);
+            pausa();
+        }
+    } while (opcion != 3);
+}
+//---------------------FIN DEPRECIACION--------------------------------
+
+//--------------------SDI----------------------------------------------
+void margenS()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf("%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf("%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf("%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf("%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+    x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf("%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf("%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c", 217);
+    
+    x = 44;
+    gotoxy(x, 6);
+    printf("%c", 218);
+    gotoxy(x, 8);
+    printf("%c", 192);
+
+    for (x = 45; x <= 80; x++)
+    {
+        gotoxy(x, 6);
+        printf("%c", 196);
+        gotoxy(x, 8);
+        printf("%c", 196);
+    }
+    gotoxy(44,7);
+    printf("%c", 179);
+    gotoxy(81,7);
+    printf("%c", 179);
+    gotoxy(81,6);
+    printf("%c", 191);
+    gotoxy(81,8);
+    printf("%c", 217);
+
+}
+
+void margenD2()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf("%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf("%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf("%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf("%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+   x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf("%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf("%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c", 217);
+
+}
+
+
+void mensajeBienvenida2() {
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+    margenS();
+    gotoxy(42, 3);
+    printf("BIENVENIDO A LA CALCULADORA FISCAL");
+    gotoxy(80,3);
+    gotoxy(52, 7);
+    printf("  Consideraciones:");
+    gotoxy(45, 10);
+    printf("  - Lee cuidadosamente las instrucciones.  ");
+    gotoxy(45, 12);
+    printf("  - Ingresa correctamente los datos.");
+    gotoxy(45,14);
+    printf("  - Recuerda la diferencia entre fijo y variable.");
+	gotoxy(45,16); printf("  - Cualquier duda preguntar :)");
+    //gotoxy(62, 16);printf("%c",162);
+    //gotoxy(45, 19);
+    //printf("  - Hecho para la materia de Contabilidad. ");
+    //gotoxy(75, 20);printf("%c",161);
+    color(hConsole,3);
+    gotoxy(45,20); printf("Hecho para la materia de contabilidad y finanzas.");
+    gotoxy(45,21); printf("Encargada: Ca. Dra. Virginia Reyes Borques.");
+    gotoxy(45, 22); printf("Por: Lizeth Elisa Sánchez Jmz");
+    gotoxy(64,22); printf("%c",160);
+    color(hConsole,7);
+    gotoxy(50, 24);
+    printf("Presiona una tecla para comenzar...");
+    getch();
+    system("cls");
+}
+
+void mensajeDespedida2() {
+	int i;
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+    for ( i = 0; i < 5; i++) {
+        system("cls");
+        gotoxy(45, 15);
+        color(hConsole,2);
+        printf("Gracias por usar el programa, saliendo...");
+        Sleep(500);
+        system("cls");
+        Sleep(500);
+        color(hConsole,7);
+    }
+}
+void variables() {
+    float an1,sal1,Daguinaldo,Dvaca,aguinaldov,primav,sdif,factorin;
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	gotoxy(23,9);
+    printf("Ingrese el numero de años: ");
+    gotoxy(45,9); printf("%c",164);
+    gotoxy(50,9);
+    scanf("%f", &an1);
+	
+	gotoxy(23,10);
+	printf("Ingrese el salario: ");
+	scanf("%f",&sal1);
+	
+	gotoxy(23,11);
+	printf("Ingrese los dias de aguinaldo: ");
+	scanf("%f",&Daguinaldo);
+	
+	gotoxy(23,12);
+	printf("Ingrese los dias de vacaiones: ");
+	scanf("%f",&Dvaca);
+	
+	color(hConsole,2);
+	aguinaldov=(Daguinaldo*sal1)/365;
+	gotoxy(23,16);
+	printf("El aguinaldo es de: %f",aguinaldov);
+	
+	primav=(Dvaca*sal1*.25)/365;
+	gotoxy(23,17);
+	printf("La prima vacacional diaria es: %f",primav);
+	
+	sdif=aguinaldov+sal1+primav;
+	gotoxy(23,18);
+	printf("El SDI es: %f",sdif);
+	
+	factorin=sdif/sal1;
+	gotoxy(23,19);
+	printf("El factor de integracion es: %f",factorin);
+	color(hConsole,7);
+}
+
+void metodoL() {
+    float sal, aguinaldo, vacaciones, sdi, factor;
+    int an;
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	gotoxy(23,9);
+    printf("Ingrese el salario diario: ");
+    scanf("%f", &sal);
+	
+	gotoxy(23,10);
+    printf("Ingrese los años de antiguedad: ");
+    gotoxy(36,10); printf("%c",164);
+    gotoxy(57,10);
+    scanf("%d", &an);
+
+    if (an==1) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(12*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an==2) {
+        aguinaldo =(15*sal)/365;
+        vacaciones=(14*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an==3) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(16*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor = sdi / sal;
+        
+    } else if (an == 4) {
+        aguinaldo = (15 * sal) / 365;
+        vacaciones = (18 * sal * 0.25) / 365;
+        sdi = sal + aguinaldo + vacaciones;
+        factor = sdi / sal;
+        
+    } else if (an == 5) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(20*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an>=6&&an<=10) {
+        aguinaldo=(15 * sal)/365;
+        vacaciones=(22*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an>=11&&an<=15) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(24*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+    } else if (an >= 16 && an<=20) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(26*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an>=21&&an<=25) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(28*sal*0.25)/365;
+        sdi=sal+aguinaldo + vacaciones;
+        factor=sdi/sal;
+        
+    } else if (an>=26&&an<=30) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(30*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+        
+    } else if(an>=31&&an<=35) {
+        aguinaldo=(15*sal)/365;
+        vacaciones=(32*sal*0.25)/365;
+        sdi=sal+aguinaldo+vacaciones;
+        factor=sdi/sal;
+    }
+	color(hConsole,2);
+	gotoxy(23,14);
+    printf("El aguinaldo es: %f", aguinaldo);
+    gotoxy(23,15);
+    printf("Las vacaciones: %f ", vacaciones);
+    gotoxy(23,16);
+    printf("El sdi es: %f", sdi);
+    gotoxy(23,17);
+    printf("El factor de integracion es: %.4f", factor);
+    color(hConsole,7);
+}
+
+void realizarCalculo() {
+    int opcion;
+    char empresa[100], empleado[100], respuesta;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    do {
+        margenS();
+        mensajeBienvenida2();
+        margenD2();
+        gotoxy(45, 3);
+        color(hConsole, 9);
+        printf("Seleccion de opciones (fijas o variables)");
+        color(hConsole, 7);
+		gotoxy(23,8);
+		printf("Ingrese el nombre de la empresa: ");
+		gets(empresa);
+		gotoxy(23,9);
+		printf("Ingrese el nombre del empleado: ");
+		gets(empleado);
+	
+		gotoxy(23, 10);
+        printf("Ingrese (1) si es para prestaciones fijas y (2) si son variables: ");
+        scanf("%d", &opcion);
+        system("cls");
+
+        switch (opcion) {
+            case 1:
+                margenD2();
+                gotoxy(53, 3);
+                color(hConsole, 9);
+                printf("Prestaciones fijas");
+                color(hConsole, 7);
+                gotoxy(50, 5);
+                printf("Empresa: %s", empresa);
+                gotoxy(45, 6);
+                printf("Nombre del empleado: %s", empleado);
+                metodoL();
+                gotoxy(23, 20);
+                color(hConsole, 4);
+                printf("Querido/a %s %cDisfruta tus vacaciones y aguinaldo!", empleado, 173);
+                color(hConsole, 7);
+                break;
+
+            case 2:
+                margenD2();
+                gotoxy(53, 3);
+                color(hConsole, 9);
+                printf("Prestaciones variables");
+                color(hConsole, 7);
+                gotoxy(50, 5);
+                printf("Empresa: %s", empresa);
+                gotoxy(45, 6);
+                printf("Nombre del empleado: %s", empleado);
+                variables();
+                break;
+        }
+
+        gotoxy(23, 23);
+        printf("¿Deseas hacer otro cálculo? (s/n): ");
+        gotoxy(23, 23);
+        printf("%c", 168);
+        gotoxy(43, 23);
+        printf("%c", 160);
+        gotoxy(59, 23);
+        scanf(" %c", &respuesta);
+
+        fflush(stdin);
+        system("cls");
+
+    } while (respuesta == 's' || respuesta == 'S');
+
+    mensajeDespedida2();
+}
+//-------------------------FIN SDI-----------------------------------
+
+//----------------------------ISR---------------------------------------
+void margenI()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf("%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf("%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf("%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf("%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+    x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf("%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf("%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c", 217);
+    
+    x = 44;
+    gotoxy(x, 6);
+    printf("%c", 218);
+    gotoxy(x, 8);
+    printf("%c", 192);
+
+    for (x = 45; x <= 80; x++)
+    {
+        gotoxy(x, 6);
+        printf("%c", 196);
+        gotoxy(x, 8);
+        printf("%c", 196);
+    }
+    gotoxy(44,7);
+    printf("%c", 179);
+    gotoxy(81,7);
+    printf("%c", 179);
+    gotoxy(81,6);
+    printf("%c", 191);
+    gotoxy(81,8);
+    printf("%c", 217);
+
+}
+
+void margen22()
+{
+    int x, y;
+    x = 20;
+    gotoxy(x, 1);
+    printf("%c", 218);
+    gotoxy(x, 26);
+    printf("%c", 192);
+    for (x =21; x <= 111; x++)
+    {
+        gotoxy(x, 1);
+        printf("%c", 196);
+        gotoxy(x, 26);
+        printf("%c", 196);
+    }
+    for (y = 2; y <= 25; y++)
+    {
+        gotoxy(20, y);
+        printf("%c", 179);
+        gotoxy(112, y);
+        printf("%c", 179);
+    }
+    gotoxy(112, 1);
+    printf("%c", 191);
+    gotoxy(112, 26);
+    printf("%c", 217);
+    
+   x = 30;
+    gotoxy(x, 2);
+    printf("%c", 218);
+    gotoxy(x, 4);
+    printf("%c", 192);
+
+    for (x = 31; x <= 94; x++)
+    {
+        gotoxy(x, 2);
+        printf("%c", 196);
+        gotoxy(x, 4);
+        printf("%c", 196);
+    }
+    gotoxy(30, 3);
+    printf("%c", 179);
+    gotoxy(94, 3);
+    printf("%c", 179);
+    gotoxy(94, 2);
+    printf("%c", 191);
+    gotoxy(94, 4);
+    printf("%c", 217);
+
+}
+
+
+void mensajeBienvenidaI() {
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+    margenI();
+    gotoxy(42, 3);
+    printf("BIENVENIDO A LA CALCULADORA FISCAL");
+    //gotoxy(71,3); printf("%c",181);
+    gotoxy(80,3);//printf("%c",224);
+    gotoxy(52, 7);
+    printf("  Consideraciones:");
+    gotoxy(45, 10);
+    printf("  - Lee cuidadosamente las instrucciones.  ");
+    gotoxy(45, 12);
+    printf("  - Ingresa correctamente los datos.");
+    gotoxy(45,14);
+    printf("  - Ten muy en cuenta la diferencia entre dias trabajados,");
+	gotoxy(45,16); printf("permisos con y sin goce de sueldo e incapacidades. ");
+    //gotoxy(62, 16);printf("%c",162);
+    gotoxy(43, 18);
+    printf("  - Si tienes alguna duda, pregunta :) . ");
+    //gotoxy(75, 20);printf("%c",161);
+    color(hConsole,3);
+    gotoxy(45, 22); printf("Programa hecho por: Lizeth Elisa Sánchez Jmz");
+    gotoxy(79,22); printf("%c",160);
+    color(hConsole,7);
+    //printf("*************************************");
+    gotoxy(50, 24);
+    printf("Presiona una tecla para comenzar...");
+    getch();
+    system("cls");
+}
+
+void mensajeDespedidaI() {
+	/*/int i;
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+    for ( i = 0; i < 5; i++) {
+        system("cls");
+        gotoxy(45, 15);
+        color(hConsole,2);
+        printf("Gracias por usar el programa, saliendo...");
+        Sleep(500);
+        system("cls");
+        Sleep(500);
+    }/*/
+    gotoxy(30,5);
+    	printf("Estimado/a cliente,\n\n"
+           "Queremos informarte sobre una actualizacion importante que afectara tus impuestos a partir del mes de enero.\n\n"
+           "A partir del 1 de enero de 2023, la tasa de impuesto sobre la renta (ISR) ha sido ajustada. Tu nueva tasa de impuesto sera del %.1f%% para el presente año fiscal.\n"
+           "Nos comprometemos a mantenernos al dia con las regulaciones fiscales para garantizar la precisión en nuestros cálculos y cumplir con las obligaciones tributarias.\n"
+           "Si tienes alguna pregunta o necesitas mas informacion sobre como esta actualizacion afectara tus impuestos, no dudes en contactarnos. Estamos aqui para ayudarte y brindarte el apoyo necesario.\n"
+           "Agradecemos tu comprension y colaboracion.\n"
+           "Atentamente La empresa\n\n");
+}
+
+void cal_isr(){
+char cad[100];
+int res, dias=0,dias2=0, dias3=0,dias4=0,totaldias=0,op;
+float salario,grabadas,sueldo,total;
+float inf,excedente,porcentaje,impuesto,cuota,cargo,credito,isr,x;
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+
+  	margenI();
+    mensajeBienvenidaI();
+    margen22();
+    gotoxy(45,3);
+    color(hConsole,9);
+    printf("Ingreso de datos para el calculo de ISR");
+    color(hConsole,7);
+
+
+	time_t tiempo_actual;
+	time(&tiempo_actual);
+	struct tm *info_tiempo = localtime(&tiempo_actual);
+	gotoxy(98,6); printf("  %02d/%02d/%02d  ", info_tiempo->tm_mday,info_tiempo->tm_mon+1,info_tiempo->tm_year+1900);	
+	gotoxy(23,8);printf("Ingrese nombre de la empresa: ")	;
+	gets(cad);
+	//sleep(1);
+	//system("cls");	
+do{
+	
+//	gotoxy(48,4);printf(" SISTEMA:CALCULADORA FISCAL PARA CALCULAR ISR ");
+	gotoxy(23,8);printf("%s",cad);
+	gotoxy(98,6);printf("  %02d/%02d/%02d  ", info_tiempo->tm_mday,info_tiempo->tm_mon+1,info_tiempo->tm_year+1900);
+	gotoxy(90,7);
+	printf("Selecciona el plazo: ");
+	gotoxy(90,8);printf("[1]Mensual");
+	gotoxy(90,9);printf("[2]Quincenal");
+	gotoxy(90,10);printf("R: ");
+	scanf("%d",&op);
+	/*/sleep(1);
+	gotoxy(90,8);printf("                    ");
+	gotoxy(90,9);printf("                    ");
+	gotoxy(90,10);printf("       ");*/
+	system("cls");
+	
+	switch(op){
+	
+	case 1:
+	margen22();
+	gotoxy(45,3);
+    color(hConsole,9);
+    printf("Ingreso de datos para el calculo de ISR mensual");
+	//gotoxy(70,8);printf("---- MENSUAL ----"); 
+	color(hConsole,7);
+	gotoxy(23,7);printf("Ingrese el salario diario: ");
+	scanf("%f",&salario);
+	gotoxy(23,8);printf("Ingrese dias laborados: ");
+	scanf("%d",&dias);
+	gotoxy(23,9);printf("Ingrese dias por incapacidad: ");
+	scanf("%d",&dias2);
+	//TOTAL DIAS
+	if (dias2>3){
+		gotoxy(70,9);printf("  La empresa solo pagara 3");
+		sleep(1);
+		gotoxy(70,9);printf("                                ");
+		dias2=3;	
+	}
+	gotoxy(23,10);printf("Ingrese dias por ausencias o permisos sin gose de sueldo: ");
+	scanf("%d",&dias3);
+	
+	gotoxy(23,11);printf("Ingrese dias por ausencias o permisos con gose de sueldo: ");
+	scanf("%d",&dias4);
+	
+	gotoxy(23,12);printf("Ingrese las percepciones excentas: ");
+	scanf("%f",&x);
+	
+	gotoxy(23,13);printf("Ingrese las percepciones grabadas: ");
+	scanf("%f",&grabadas);
+	//TOTAL DIAS
+	if (dias2>3){
+		gotoxy(50,11);printf("  La empresa solo pagara 3");
+		sleep(1);
+		gotoxy(50,11);printf("                                ");
+		dias2=3;	
+	}
+	
+	totaldias=(dias+dias2+dias4);
+	gotoxy(85,25);printf("DIAS A PAGAR: %d",totaldias);
+	int i;
+	/*/for(i=4; i<52; i++){
+		gotoxy(i+1,15);printf("-");Sleep(40);
+	}/*/
+system("cls");
+	margen22();
+	 gotoxy(45,3);
+    color(hConsole,9);
+    printf("R  E  S  U  L  T  A  D  O  S ");
+    //gotoxy(65,3);printf("%S",cad);
+    color(hConsole,7);
+	gotoxy(23,16);printf("BASE GRAVABLE: ");
+	sueldo=salario*totaldias;
+	total=sueldo+grabadas;
+	gotoxy(23,8);printf("-Sueldo o salario: %.2f",sueldo);
+	gotoxy(23,9);printf("-Percepciones grabadas: %.2f",grabadas);
+	gotoxy(23,10);printf("Base gravable: %.2f",total);
+	
+	// LIIMITE INFERIOR
+	
+	if (total>0.01 && total<496.07) inf= 0.01;
+	if (total>496.07 && total<4210.41) inf= 496.08;
+	if (total>4210.41 && total<7399.42) inf= 4210.42;
+	if (total>7399.42 && total<8601.50) inf= 7399.43;
+	if(total>8601.50) inf= 8601.51;
+		
+	gotoxy(23,11);printf("(-) Limite inferior: %.2f",inf);
+	excedente=total-inf;
+	gotoxy(23,12);printf("(=) Excedente: %.2f",excedente);
+	
+	// PORCENTAJE 
+	if (total>0.01 && total<496.07) porcentaje= 3;
+	if (total>496.07 && total<4210.41) porcentaje= 10;
+	if (total>4210.41 && total<7399.42) porcentaje= 17;
+	if (total>7399.42 && total<8601.50) porcentaje=25;
+	if(total>8601.50) porcentaje= 28;
+	
+	gotoxy(23,13);printf("(X) %c s/Exc: %.2f",37,porcentaje);
+	impuesto=(excedente*porcentaje)/100;
+	gotoxy(23,14);printf("(=) Impuesto Marginal: %.2f",impuesto);
+	
+	// CUOTAS FIJAS 
+	if (total>0.01 && total<496.07) cuota= 0;
+	if (total>496.07 && total<4210.41) cuota= 14.88;
+	if (total>4210.41 && total<7399.42) cuota= 386.31;
+	if (total>7399.42 && total<8601.50) cuota=928.46;
+	if(total>8601.50) cuota= 1228.98;
+	gotoxy(23,15);printf("(+) Cuota Fija: %.2f",cuota);
+	cargo=impuesto+cuota;
+	gotoxy(23,16);printf("Impuesto a Cargo: %.2f",cargo);
+	
+	//CREDITO
+	if(sueldo>0.01 && sueldo<1768.96) credito=407.02;
+	if(sueldo>1768.97 && sueldo<2604.68) credito=406.83;
+	if(sueldo>2604.69 && sueldo<2653.38) credito=406.83;
+	if(sueldo>2653.39 && sueldo<3472.84) credito=406.62;
+	if(sueldo>3472.85 && sueldo<3537.87) credito=392.77;
+	if(sueldo>3537.88 && sueldo<3785.54) credito=382.46;
+	if(sueldo>3785.55 && sueldo<4446.15) credito=382.46;
+	if(sueldo>4446.16 && sueldo<4717.18) credito=354.23;
+	if(sueldo>4717.19 && sueldo<5335.42) credito=324.87;
+	if(sueldo>5335.43 && sueldo<6224.67) credito=294.63;
+	if(sueldo>6224.68 && sueldo<7113.90) credito=253.54;
+	if(sueldo>7113.91 && sueldo<7382.33) credito=217.61;
+	if(sueldo>7382.34) credito=0;
+	gotoxy(23,17);printf("(-)Cr%cdito o Salario: %.2f",130,credito);
+	isr=cargo-credito;
+	gotoxy(23,18);printf("Impuesto a pagar: %.2f",isr);
+	
+	sleep(1);
+	gotoxy(80,13);printf("DEDUCCIONES");
+	gotoxy(75,15);printf("ISR   %.2f %c",isr,36);
+	break;
+	
+	case 2: 
+	margen22();
+	 gotoxy(33,3);
+    color(hConsole,9);
+    printf("Ingreso de datos para el calculo de ISR quincenal");
+     color(hConsole,7);
+//	gotoxy(70,8);printf("---- QUINCENAL ----");
+	gotoxy(23,7);printf("Ingrese el salario diario: ");
+	scanf("%f",&salario);
+	gotoxy(23,8);printf("Ingrese dias laborados: ");
+	scanf("%d",&dias);
+	gotoxy(23,9);printf("Ingrese dias por incapacidad: ");
+	scanf("%d",&dias2);
+	//TOTAL DIAS
+	if (dias2>3){
+		gotoxy(70,9);printf("  La empresa solo pagara 3");
+		sleep(1);
+		gotoxy(70,9);printf("                                ");
+		dias2=3;	
+	}
+	gotoxy(23,10);printf("Ingrese dias por P/A sin gose de sueldo: ");
+	scanf("%d",&dias3);
+	
+	gotoxy(23,11);printf("Ingrese dias por P/A con gose de sueldo: ");
+	scanf("%d",&dias4);
+	
+	gotoxy(23,12);printf("Ingrese las percepciones excentas: ");
+	scanf("%f",&x);
+	
+	gotoxy(23,13);printf("Ingrese las percepciones grabadas: ");
+	scanf("%f",&grabadas);
+	//TOTAL DIAS
+	if (dias2>3){
+		gotoxy(50,11);printf("  La empresa solo pagara 3" );
+		sleep(1);
+		gotoxy(50,11);printf("                                ");
+		dias2=3;	
+	}
+	
+	totaldias=(dias+dias2+dias4);
+	gotoxy(85,25);printf("DIAS A PAGAR: %d",totaldias);
+	/*/for(i=4; i<52; i++){
+		gotoxy(i+1,15);printf("-");Sleep(40);
+	}/*/
+	system("cls");
+	margen22();
+	 gotoxy(45,3);
+    color(hConsole,9);
+    printf("R  E  S  U  L  T  A  D  O  S ");
+    //gotoxy(65,3);printf("%S",cad);
+    color(hConsole,7);
+	gotoxy(23,16);printf("BASE GRAVABLE: ");
+	sueldo=salario*totaldias;
+	total=sueldo+grabadas;
+	gotoxy(23,8);printf("-Sueldo o salario: %.2f",sueldo);
+	gotoxy(23,9);printf("-Percepciones grabadas: %.2f",grabadas);
+	gotoxy(23,10);printf("Base gravable: %.2f",total);
+	
+	// LIIMITE INFERIOR
+	
+	if (total>0.01 && total<368.10) inf= 0.01;
+	if (total>368.11 && total<3124.35) inf= 368.11;
+	if (total>3124.36 && total<5490.75) inf= 3124.36;
+	if (total>5490.76 && total<6382.80) inf= 5490.76;
+	if (total>6382.81 && total<7641.90) inf= 6382.81;
+	if (total>7641.91 && total<15412.80) inf= 7641.91;
+	if (total>15412.81 && total<24292.65) inf= 15412.81;
+	if (total>24292.66 && total<46378.50) inf= 24292.66;
+	if (total>46378.51 && total<61838.10) inf= 46378.51;
+	if (total>61838.11 && total<185514.30) inf= 61838.11;
+	if(total>185514.31) inf= 185514.31;
+		
+	gotoxy(23,11);printf("(-) Limite inferior: %.2f",inf);
+	excedente=total-inf;
+	gotoxy(23,12);printf("(=) Excedente: %.2f",excedente);
+	
+	// PORCENTAJE 
+	if (total>0.01 && total<368.10) porcentaje= 1.91;
+	if (total>368.11 && total<3124.35) porcentaje= 6.40;
+	if (total>3124.36 && total<5490.75) porcentaje= 10.88;
+	if (total>5490.76 && total<6382.80) porcentaje= 16;
+	if (total>6382.81 && total<7641.90) porcentaje= 17.92;
+	if (total>7641.91 && total<15412.80) porcentaje= 21.36;
+	if (total>15412.81 && total<24292.65) porcentaje= 23.52;
+	if (total>24292.66 && total<46378.50) porcentaje= 30;
+	if (total>46378.51 && total<61838.10) porcentaje= 32;
+	if (total>61838.11 && total<185514.30) porcentaje= 34;
+	if(total>185514.31) porcentaje= 35;
+	
+	gotoxy(23,18);printf("(X) %c s/Exc: %.2f",37,porcentaje);
+	impuesto=(excedente*porcentaje)/100;
+	gotoxy(23,19);printf("(=) Impuesto Marginal: %.2f",impuesto);
+	
+	// CUOTAS FIJAS 
+	if (total>0.01 && total<368.10) cuota= 0;
+	if (total>368.11 && total<3124.35) cuota= 7.05;
+	if (total>3124.36 && total<5490.75) cuota= 183.45;
+	if (total>5490.76 && total<6382.80) cuota= 441;
+	if (total>6382.81 && total<7641.90) cuota= 583.65;
+	if (total>7641.91 && total<15412.80) cuota= 809.25;
+	if (total>15412.81 && total<24292.65) cuota= 2469.15;
+	if (total>24292.66 && total<46378.50) cuota= 4557.75;
+	if (total>46378.51 && total<61838.10) cuota= 11183.40;
+	if (total>61838.11 && total<185514.30) cuota= 16130.55;
+	if(total>185514.31) cuota= 58180.35;
+	
+	
+	gotoxy(23,20);printf("(+) Cuota Fija: %.2f",cuota);
+	cargo=impuesto+cuota;
+	gotoxy(23,21);printf("Impuesto a Cargo: %.2f",cargo);
+	
+	//CREDITO
+	if(sueldo>0.01 && sueldo<872.85) credito=200.85;
+	if(sueldo>872.86 && sueldo<1309.20) credito=200.70;
+	if(sueldo>1309.21 && sueldo<1713.60) credito=200.70;
+	if(sueldo>1713.61 && sueldo<1745.70) credito=193.80;
+	if(sueldo>1745.71 && sueldo<2193.75) credito=188.70;
+	if(sueldo>2193.76 && sueldo<2327.55) credito=174.75;
+	if(sueldo>2327.56 && sueldo<2632.65) credito=160.35;
+	if(sueldo>2362.66 && sueldo<3071.40) credito=145.35;
+	if(sueldo>3071.41 && sueldo<3510.15) credito=125.10;
+	if(sueldo>3510.16 && sueldo<3642.60) credito=107.40;
+	if(sueldo>3642.61) credito=0;
+	
+	
+	gotoxy(23,22);printf("(-)Cr%cdito o Salario: %.2f",130,credito);
+	isr=cargo-credito;
+	gotoxy(23,23);printf("Impuesto a pagar: %.2f",isr);
+	
+	sleep(1);
+	gotoxy(80,13);printf("DEDUCCIONES");
+	gotoxy(75,15);printf("ISR   %.2f %c",isr,36);
+	break;	
+		
+		
+	}	
+	gotoxy(78,29);printf("Otro calculo (Si[1] / No[0]): ");
+	scanf("%d",&res);
+	sleep(1);
+	system("cls");	
+	margen22();	
+	  gotoxy(45,3);
+    color(hConsole,9);
+    printf("Ingreso de datos para el calculo de ISR");
+    color(hConsole,7);
+	
+}while(res != 0);
+	system("cls");
+	gotoxy(25,8);
+ 
+	mensajeDespedidaI();	
+	
+}
+//----------------FIN ISR-----------------------------
+
+void catalogo(void);
+void margen (int x1, int y1, int x2, int y2);
+void mostrarempresa();
+void ingresadatosdeempresa();
+void crearusuario();
+void comercialcontrasenia ();
+void comercialinicializarcuenta();
+//void comercialmostrarcuentas();
+void comercialmostrarcuentas22();
+void comercialrayadodiario();
+void comercialesquemasmayor();
+void comercialbalanza();
+void comercialbalancegeneral();
+void comercialestadoderesultados();
+void comercialtargetasdealmacen();
+void borar();
+char passconta[10];
+char passauxi[10]= {"virginia"};
+char usuariocont[20];
+char usuarioaux[20]={"contabilidad"}; 
+struct cuentas1 comercial[N];  
+char pass[10];
+char empresa[10];
+char fecha[30];
+
+int i=0; 	
+int aux[N], aux2[N];
+float activo, activocirculante, activonocirculante, activodiferido, pasivo, pasivocirculante, pasivonocirculante, pasivodiferido;
+float movimientodeudor, movimientoacreedor, saldoacreedor, saldodeudor;
+float summovideudor,summoviacreedor,sumsaldeudor,sumsalacreedor;
+float saldo=0;
+float medio=0;
+float totalACcirculante=0, totaAClfijo=0, totalACdiferido=0, totalPAScirculante=0, totalPASfijo=0, totalPASdiferido=0;
+float totalAC=0, totalPAS=0;
+float suma1degeneral=0, suma2degeneral=0, suma3degeneral=0,inventarioinicial=0;
+int p=0, pa=0, pe=0, pi=0, po=0, pu=0, y=0;
+char subcuenta[20][20],subcuenta1[20][20],subcuenta2[20][20],subcuenta3[20][20],subcuenta4[20][20];
+float piezas[20],precio[20],piezas1[20],precio1[20],piezas2[20],precio2[20],piezas3[20],precio3[20],piezas4[20],precio4[20];
+float merdebe[20],merhaber[20];
+float merdebe1[20],merhaber1[20];
+float merdebe2[20],merhaber2[20];
+float merdebe3[20],merhaber3[20];
+float merdebe4[20],merhaber4[20];
+int medi=0,medi1=0,medi2=0,medi3=0,medi4=0;
+int n=0,n1=0,n2=0,n3=0,n4=0,ayuda=0;
+
+void mensajeInicio() {
+    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+    margen2();
+    gotoxy(42, 3);
+    printf("BIENVENIDO AL PROGRAMA CONTABLE");
+    gotoxy(80,3);
+    gotoxy(52, 7);
+    printf(" Examen ordinario 3° semestre:");
+    gotoxy(45, 10);
+    printf("  - Lee cuidadosamente las instrucciones.  ");
+    gotoxy(45, 12);
+    printf("  - Ingresa correctamente los datos.");
+    gotoxy(45,14);
+    printf("  - El programa realizar todo el proceso contable,");
+    gotoxy(45,15);
+    printf("  - A demas de los calculos de ISR,SDI y depreciacion");
+	gotoxy(45,17); printf("  - Cualquier duda preguntar :)");
+    //gotoxy(62, 16);printf("%c",162);
+    //gotoxy(45, 19);
+    //printf("  - Hecho para la materia de Contabilidad. ");
+    //gotoxy(75, 20);printf("%c",161);
+    color(hConsole,3);
+    gotoxy(45,20); printf("Hecho para la materia de contabilidad y finanzas.");
+    gotoxy(45,21); printf("Encargada: Ca. Dra. Virginia Reyes Borques.");
+    gotoxy(45, 22); printf("Por: Lizeth Elisa Sánchez Jmz");
+    gotoxy(64,22); printf("%c",160);
+    color(hConsole,7);
+    gotoxy(50, 24);
+    printf("Presiona una tecla para comenzar...");
+    getch();
+    system("cls");
+}
+
+int main ()
+{
+	int tipoempresa;
+	system("cls"); 
+//	margen (20,8,85,20);
+//	margen (10,3,100,25);
+ 	mensajeInicio();
+	/*/gotoxy(37,10); printf("BIENVENIDO AL PROGRAMA CONTABLE"); Sleep(100);
+	gotoxy(42,13); printf("1. EMPRESA COMERCIAL"); Sleep(100);
+	gotoxy(42,14); printf("2. EMPRESA INDUSTRIAL"); Sleep(100);
+	gotoxy(42,15); printf("3. EMPRESA DE SERVICIOS"); Sleep(100);
+	gotoxy(36,17); printf("SELECCIONE EL TIPO DE EMPRESA: "); Sleep(100);/*/
+	//gotoxy(36,17); printf("Presione 1 para comenzzar");
+	 
+	gotoxy(42,10); printf("P R O G R A M A    C O N T A B L E "); Sleep(100);
+	gotoxy(51,13); printf("EMPRESA COMERCIAL"); 
+	//margen(49,15,69,17);
+	gotoxy(56,15); printf("Cargando");
+	
+	for(i=0; i<10; i++){
+		gotoxy(50+(i*2),16); printf("%c",196);
+		Sleep(100);
+		gotoxy(50+(i*2),16); printf("\\");
+		Sleep(100);
+		gotoxy(50+(i*2),16); printf("|");
+		Sleep(100);
+		gotoxy(50+(i*2),16); printf("/");
+		Sleep(100);
+	}
+	Sleep(100);
+	system("cls");
+	gotoxy(56,6);printf("MISION:");
+	gotoxy(23,8);printf("En COMPUTEC S.A. de C.V. nos enfocamos en proporcionar soluciones tecnol%cgicas ",162);
+	gotoxy(23,9);printf("de alta calidad y adaptadas a las necesidades espec%cficas del sector educativo ",161);
+	gotoxy(23,10);printf("en Oaxaca. Nuestro compromiso es impulsar la innovaci%cn y el progreso en las ",162);
+	gotoxy(23,11);printf("instituciones educativas de nuestra regi%cn, mediante productos y servicios ",162);
+	gotoxy(23,12);printf("inform%cticos que garanticen eficiencia y excelencia en la experiencia educativa.",160);
+	
+	gotoxy(56,15);printf("VISION:");
+	gotoxy(23,17);printf("Nuestra visi%cn en COMPUTEC S.A. de C.V. es convertirnos en el principal referente de",162);
+	gotoxy(23,18);printf("soluciones tecnol%cgicas para el sector educativo en Oaxaca, destacando por nuestra ",162);
+	gotoxy(23,19);printf("innovaci%cn, calidad y compromiso con el progreso educativo en nuestra regi%cn.",162,162);
+	
+	gotoxy(25,23); printf("Presione 1 para comenzar");
+	scanf("%d%*c",&tipoempresa); 
+  
+	if (tipoempresa==1){
+		system("cls");
+		int h;
+		movimientodeudor=0, movimientoacreedor=0, saldoacreedor=0, saldodeudor=0;
+		summovideudor=0, summoviacreedor=0, sumsaldeudor=0, sumsalacreedor=0;
+		comercialinicializarcuenta(); 
+		for(i=0; i<N;i++)
+		{
+			for(h=0;h<20;h++)
+			{
+				comercial[i].debe[h]=0;
+				comercial[i].haber[h]=0;
+			}
+			comercial[i].saldoacreedor=0;
+			comercial[i].saldodeudor=0;
+		}
+		for(i=0;i<N;i++)
+		{
+			aux[i]=0;
+			aux2[i]=0;
+		}
+		for(i=0;i<N;i++)
+		{
+			comercial[i].saldoacreedor=0;
+			comercial[i].saldodeudor=0;
+		}
+		//ingresadatosdeempresa();
+		crearusuario();
+		comercialcontrasenia(); 
+		getch();
+	}
+}
+
+//-----------------Inicia cuentas -------------------------------------
+
+void comercialinicializarcuenta(){	
+  //ACTIVO CIRCULANTE  
+	strcpy (comercial[0].codigo1,"1");  
+	strcpy (comercial[0].cuenta,"ACTIVO");
+	strcpy (comercial[1].codigo1,"1.1"); 
+	strcpy (comercial[1].cuenta,"ACTIVO CIRCULANTE");
+	strcpy (comercial[2].codigo1,"1.1.1");  
+	strcpy (comercial[2].cuenta,"Caja");
+	strcpy (comercial[3].codigo1,"1.1.2"); 
+	strcpy (comercial[3].cuenta,"Bancos");
+	strcpy (comercial[4].codigo1,"1.1.3"); 
+	strcpy (comercial[4].cuenta,"Inversiones temporales o de corto plazo");
+	strcpy (comercial[5].codigo1,"1.1.4"); 
+	strcpy (comercial[5].cuenta,"Mercancias");
+	strcpy (comercial[6].codigo1,"1.1.5"); 
+	strcpy (comercial[6].cuenta,"Clientes");
+	strcpy (comercial[7].codigo1,"1.1.6"); 
+	strcpy (comercial[7].cuenta,"Deudores diversos"); 
+	strcpy (comercial[8].codigo1,"1.1.7"); 
+	strcpy (comercial[8].cuenta,"Funcionarios y empleados");
+	strcpy (comercial[9].codigo1,"1.1.8"); 
+	strcpy (comercial[9].cuenta,"Documentos por cobrar corto plazo");
+	strcpy (comercial[10].codigo1,"1.1.9"); 
+	strcpy (comercial[10].cuenta,"IVA acreditable");
+	strcpy (comercial[11].codigo1,"1.1.10"); 
+	strcpy (comercial[11].cuenta,"IVA pendiente de acreditar");  
+  //ACTIVO NO CIRCULANTE
+  strcpy(comercial[12].codigo1, "1.2"); 
+  strcpy(comercial[12].cuenta,"ACTIVO NO CIRCULANTE");
+  strcpy(comercial[13].codigo1,"1.2.1"); 
+  strcpy(comercial[13].cuenta,"Terrenos");
+  strcpy(comercial[14].codigo1,"1.2.2"); 
+  strcpy(comercial[14].cuenta,"Revaluacion de terrenos");
+  strcpy(comercial[15].codigo1,"1.2.3"); 
+  strcpy(comercial[15].cuenta,"Edificios o construcciones");    
+  strcpy(comercial[16].codigo1,"1.2.4");
+  strcpy(comercial[16].cuenta,"Depreciacion de edificios"); 
+  strcpy(comercial[17].codigo1,"1.2.5");
+  strcpy(comercial[17].cuenta,"Maquinaria y equipo");
+  strcpy(comercial[18].codigo1,"1.2.6");
+  strcpy(comercial[18].cuenta,"Mobiliario y equipo de oficina");								
+  strcpy(comercial[19].codigo1,"1.2.7"); 
+  strcpy(comercial[19].cuenta,"Equipo de computo");							 
+  strcpy(comercial[20].codigo1,"1.2.8"); 
+  strcpy(comercial[20].cuenta,"Equipo periferico");									
+  //HASTA AQUI 
+  strcpy(comercial[21].codigo1,"1.2.9");
+  strcpy(comercial[21].cuenta,"Equipo de reparto o entrega");
+  strcpy(comercial[22].codigo1,"1.2.10"); 
+  strcpy(comercial[22].cuenta,"Inversiones temporales a largo plazo");							
+  strcpy(comercial[23].codigo1,"1.2.11"); 
+  strcpy(comercial[23].cuenta,"Depositos en garantia");
+  strcpy(comercial[24].codigo1,"1.2.12"); 
+  strcpy(comercial[24].cuenta,"Patentes");
+  strcpy(comercial[25].codigo1,"1.2.13"); 
+  strcpy(comercial[25].cuenta,"Marcas");
+  strcpy(comercial[26].codigo1,"1.2.14"); 
+  strcpy(comercial[26].cuenta,"Franquicias");
+  strcpy(comercial[27].codigo1,"1.2.15"); 
+  strcpy(comercial[27].cuenta,"Acciones y valores");
+  strcpy(comercial[28].codigo1,"1.2.16"); 
+  strcpy(comercial[28].cuenta,"Obligaciones o bonos");							  
+  //OTROS ACTIVOS O DIFERIDO
+  strcpy(comercial[29].codigo1,"1.3"); 
+  strcpy(comercial[29].cuenta,"ACTIVO DIFERIDO");
+  strcpy(comercial[30].codigo1,"1.3.1"); 
+  strcpy(comercial[30].cuenta,"Gastos de constitucion");
+  strcpy(comercial[31].codigo1,"1.3.2"); 
+  strcpy(comercial[31].cuenta,"Gastos de instalacion");
+  strcpy(comercial[32].codigo1,"1.3.3"); 
+  strcpy(comercial[32].cuenta,"Papeleria y utiles en economia de escala");
+  strcpy(comercial[33].codigo1,"1.3.4"); 
+  strcpy(comercial[33].cuenta,"Propaganda y publicidad");
+  strcpy(comercial[34].codigo1,"1.3.5"); 
+  strcpy(comercial[34].cuenta,"Primas de seguro pagados por anticipado");
+  strcpy(comercial[35].codigo1,"1.3.6"); 
+  strcpy(comercial[35].cuenta,"Anticipos en proveedores");
+  strcpy(comercial[36].codigo1,"1.3.7"); 
+  strcpy(comercial[36].cuenta,"Rentas pagadas por anticipado");
+  strcpy(comercial[37].codigo1,"1.3.8"); 
+  strcpy(comercial[37].cuenta,"Intereses pagados por anticipado");
+
+  //PASIVO CIRCULANTE
+  strcpy(comercial[38].codigo1,"2"); 
+  strcpy(comercial[38].cuenta,"PASIVOS");
+  strcpy(comercial[39].codigo1,"2.1"); 
+  strcpy(comercial[39].cuenta,"PASIVO CIRCULANTE");
+  strcpy(comercial[40].codigo1,"2.1.1"); 
+  strcpy(comercial[40].cuenta,"Proveedor");
+  strcpy(comercial[41].codigo1,"2.1.2"); 
+  strcpy(comercial[41].cuenta,"Acreedores diversos");
+  strcpy(comercial[42].codigo1,"2.1.3"); 
+  strcpy(comercial[42].cuenta,"Documentos por pagar corto plazo");
+  strcpy(comercial[43].codigo1,"2.1.4"); 
+  strcpy(comercial[43].cuenta,"IVA trasladado");								
+  strcpy(comercial[44].codigo1,"2.1.5"); 
+  strcpy(comercial[44].cuenta,"IVA por trasladar");
+  strcpy(comercial[45].codigo1,"2.1.6"); 
+  strcpy(comercial[45].cuenta,"Impuestos pendientes de pago");
+  strcpy(comercial[46].codigo1,"2.1.7"); 
+  strcpy(comercial[46].cuenta,"Retenciones a terceros");
+  strcpy(comercial[47].codigo1,"2.1.8"); 
+  strcpy(comercial[47].cuenta,"Anticipo  de clientes");
+  //PASIVOS NO CIRCULANTES
+  strcpy(comercial[48].codigo1,"2.2"); 
+  strcpy(comercial[48].cuenta,"PASIVO NO CIRCULANTE");
+  strcpy(comercial[49].codigo1,"2.2.1"); 
+  strcpy(comercial[49].cuenta,"Deudas a largo plazo");
+  strcpy(comercial[50].codigo1,"2.2.2"); 
+  strcpy(comercial[50].cuenta,"Arrendamientos financieros a largo plazo");
+  strcpy(comercial[51].codigo1,"2.2.3"); 
+  strcpy(comercial[51].cuenta,"Obligaciones de pensiones y jubilaciones");
+  strcpy(comercial[52].codigo1,"2.2.4"); 
+  strcpy(comercial[52].cuenta,"Intereses devengados entre entidades relacionadas");
+  //OTROS PASIVOS O DIFERIDOS
+  strcpy(comercial[53].codigo1,"2.3"); 
+  strcpy(comercial[53].cuenta,"OTROS PASIVOS O DIFERIDO");
+  strcpy(comercial[54].codigo1,"2.3.1"); 
+  strcpy(comercial[54].cuenta,"Garantias y responsabilidades contingentes");
+  strcpy(comercial[55].codigo1, "2.3.2"); 
+  strcpy(comercial[55].cuenta,"Depositos de clientes");
+  strcpy(comercial[56].codigo1, "2.3.3"); 
+  strcpy(comercial[56].cuenta,"Reservas para reestructuracion");
+  strcpy(comercial[57].codigo1, "2.3.4"); 
+  strcpy(comercial[57].cuenta,"Hipotecas por pagar");
+  strcpy(comercial[58].codigo1, "2.3.5"); 
+  strcpy(comercial[58].cuenta,"Arrendamientos financieros");
+  strcpy(comercial[59].codigo1, "2.3.6"); 
+  strcpy(comercial[59].cuenta,"Intereses por pagar");
+ 	
+  //CAPITAL CONTABLE
+  strcpy(comercial[60].codigo1,"3"); 
+  strcpy(comercial[60].cuenta,"CAPITAL CONTABLE");
+  strcpy(comercial[61].codigo1,"3.1"); 
+  strcpy(comercial[61].cuenta,"Capital social");
+  strcpy(comercial[62].codigo1,"3.2"); 
+  strcpy(comercial[62].cuenta,"Patrimonio");
+  strcpy(comercial[63].codigo1,"3.3"); 
+  strcpy(comercial[63].cuenta,"Reserva legal");
+  strcpy(comercial[64].codigo1,"3.4"); 
+  strcpy(comercial[64].cuenta,"Resultado de ejercicios anteriores");
+  strcpy(comercial[65].codigo1,"3.5"); 
+  strcpy(comercial[65].cuenta,"Resultado del ejercicio");
+  //INGRESOS
+  strcpy(comercial[66].codigo1,"4"); 
+  strcpy(comercial[66].cuenta,"INGRESOS");
+  strcpy(comercial[67].codigo1,"4.1"); 
+  strcpy(comercial[67].cuenta,"Ingresos");
+  strcpy(comercial[68].codigo1,"4.2"); 
+  strcpy(comercial[68].cuenta,"Devoluciones, descuentos o bonificaiones sobre ingresos");
+  strcpy(comercial[69].codigo1,"4.3"); 
+  strcpy(comercial[69].cuenta,"Otros ingresos");
+  //COSTOS
+  strcpy(comercial[70].codigo1,"5"); 
+  strcpy(comercial[70].cuenta,"COSTOS");
+  strcpy(comercial[71].codigo1,"5.1"); 
+  strcpy(comercial[71].cuenta,"Costos de venta y/o servicio");
+  strcpy(comercial[72].codigo1,"5.2"); 
+  strcpy(comercial[72].cuenta,"Compras");
+  strcpy(comercial[73].codigo1,"5.3"); 
+  strcpy(comercial[73].cuenta,"Devoluciones, descuentos o bonificaciones sobre compras");
+  strcpy(comercial[74].codigo1,"5.4"); 
+  strcpy(comercial[74].cuenta,"Otras cuentas de costos");
+  strcpy(comercial[75].codigo1,"5.5"); 
+  strcpy(comercial[75].cuenta,"Costo de activo fijo");
+  //GASTOS
+  strcpy(comercial[76].codigo1,"6"); 
+  strcpy(comercial[76].cuenta,"GASTOS");
+  strcpy(comercial[77].codigo1,"6.1"); 
+  strcpy(comercial[77].cuenta,"Gastos generales");
+  strcpy(comercial[78].codigo1,"6.2"); 
+  strcpy(comercial[78].cuenta,"Gastos de ventas");
+  strcpy(comercial[79].codigo1,"6.3"); 
+  strcpy(comercial[79].cuenta,"Gastos de administracion");
+  strcpy(comercial[80].codigo1,"6.4"); 
+  strcpy(comercial[80].cuenta,"Gastos de fabricación");
+  strcpy(comercial[81].codigo1,"6.5");
+  strcpy(comercial[81].cuenta,"Mano de obra directa");
+  strcpy(comercial[82].codigo1,"6.6"); 
+  strcpy(comercial[82].cuenta,"Facilidades administrativas fiscales");
+  strcpy(comercial[83].codigo1,"6.7"); 
+  strcpy(comercial[83].cuenta,"Impuestos sobre la renta");
+  strcpy(comercial[84].codigo1,"6.8"); 
+  strcpy(comercial[84].cuenta,"Gastos de fabricación");   
+  strcpy(comercial[85].codigo1,"6.9"); 
+  strcpy(comercial[85].cuenta,"Amortización contable");    
+  //RESULTADOS
+  strcpy(comercial[86].codigo1,"7");
+  strcpy(comercial[86].cuenta,"RESULTADO INTEGRAL DE FINANCIAMIENTO");
+  strcpy(comercial[87].codigo1,"7.1"); 
+  strcpy(comercial[87].cuenta,"Gastos financieros");
+  strcpy(comercial[88].codigo1,"7.2"); 
+  strcpy(comercial[88].cuenta,"Productos financieros");
+  strcpy(comercial[89].codigo1,"7.3"); 
+  strcpy(comercial[89].cuenta,"Otros gastos");   
+  strcpy(comercial[90].codigo1,"7.4"); 
+  strcpy(comercial[90].cuenta,"Otros productos");
+    
+}
+
+
+void margen (int x1, int y1, int x2, int y2){
+  int x,y;
+ 
+	  for (x=x1;x<=x2;x++){
+	    gotoxy (x,y1); printf ("%c",176);
+	    gotoxy (x,y2); printf ("%c",176);
+	  }
+	  for (y=y1;y<=y2;y++){
+	    gotoxy (x1,y); printf ("%c",186);
+	    gotoxy (x2,y); printf ("%c",186);
+	  }
+ 
+}
+
+
+void crearusuario(){
+ 	//margen (20,18,85,28);
+	 	gotoxy (23,10); printf ("Crear cuenta ");
+		gotoxy (25,15); printf ("Nombre de usuario: ");
+		gets (usuariocont);
+	 	gotoxy (25,20); printf ("Cree una contraseña: ");
+	    gets (passconta);
+}
+
+void comercialcontrasenia(){
+  int i, intentos=0, op;
+  char password[4];
+  char tecla;
+
+  mostrarempresa();
+  do{
+    system ("Cls");
+    
+   /*/ for(i=0;i<15;i++){
+		gotoxy(41+i,11);printf ("%c",196);
+		gotoxy(41+i,13);printf ("%c",196);
+    }
+    gotoxy (41,12); printf ("%c",179);
+    gotoxy (56,12); printf ("%c",179);
+
+    gotoxy (41,11); printf ("%c",218);
+    gotoxy (56,11); printf ("%c",191);
+    gotoxy (41,13); printf ("%c",192);
+    gotoxy (56,13); printf ("%c",217);
+    margen (20,8,85,20);
+    margen (10,4,100,25);
+    /*for(i=1; i<=8; i++)
+    {
+      gotoxy(12*i,5);printf("%c",207);
+      gotoxy(12*i,23);printf("%c",207);
+    }
+    for(i=1;i<6; i++)
+    {
+  	  gotoxy(12,(i*3)+5);printf(".");
+  	  gotoxy(15,(i*3)+5);printf(".");
+  	  gotoxy(18,(i*3)+5);printf(".");
+  	  gotoxy(87,(i*3)+5);printf(".");
+  	  gotoxy(91,(i*3)+5);printf(".");
+  	  gotoxy(95,(i*3)+5);printf(".");
+    }*/
+    
+    
+    gotoxy (31,12); printf ("Password:");
+    mostrarempresa();
+    i=0;
+    do{
+      gotoxy (43+i,12);
+      password[i]=getch();
+      gotoxy (43+i,12);printf("*");
+
+      i++;
+    }while (password[i-1] != 13);
+    password[i-1]= '\0';
+
+//---------------------------------------------CONTADOR--------------------------------------------------------------
+    if ((strcmp(password, passconta) == 0)){
+      system("cls");
+      mostrarempresa();
+      //margen (20,8,85,20);
+      //margen (10,4,100,25);
+      
+     
+     /* for(i=1; i<=8; i++)
+      {
+        gotoxy(12*i,5);printf("%c",207);
+        gotoxy(12*i,23);printf("%c",207);
+      }
+      for(i=1;i<6; i++)
+      {
+  	    gotoxy(12,(i*3)+5);printf(".");
+  	    gotoxy(15,(i*3)+5);printf(".");
+  	    gotoxy(18,(i*3)+5);printf(".");
+  	    gotoxy(87,(i*3)+5);printf(".");
+  	    gotoxy(91,(i*3)+5);printf(".");
+  	    gotoxy(95,(i*3)+5);printf(".");
+      }*/
+      gotoxy (47,12); printf ("%cBienvenido a programaO%c",173,33);
+      gotoxy (47,15); printf ("Usuario:  "); 
+	  puts (usuariocont);
+	  getch();
+      
+	  do{
+	  		  
+	  	      system ("cls"); 
+		      margen2();
+		      gotoxy(45,3); printf("M E N %c   DE   O P E R A C I O N E S",233);
+		   	  gotoxy(23,7);  printf ("1. Tabla de depreciaci%cn.",162); 
+			  gotoxy(23,8);  printf ("2. C%clculo de ISR.",160);
+			  gotoxy(23,9);  printf ("3. C%clculo de SDI",160);
+			  gotoxy(23,10);  printf ("4. Cat%clogo de cuentas.",160); 
+			  gotoxy(23,11);  printf ("5. Crear asiento contable."); 
+			  gotoxy(23,12);  printf ("6. Esquemas de mayor.");
+			  gotoxy(23,13);  printf ("7. Balanza de comprobaci%cn.",162);  
+			  gotoxy(23,14);  printf ("8. Balance general."); 
+			  gotoxy(23,15); printf ("9. Almac%cn.",130); 
+			  gotoxy(23,16); printf ("10. Estado de resultados."); 
+              gotoxy(23,17); printf ("11. Salir.");
+		      gotoxy(23,21); printf ("Seleccione una opci%cn: ",162);
+		      scanf ("%d%*c",&op);
+			  
+			   
+		      system ("cls"); 
+			   mostrarempresa(); 
+					  switch (op){
+					  	case 1: 
+					  		ejecutarPrograma();
+						break;
+						case 2: 
+							cal_isr();
+						break;
+						case 3: 
+						    realizarCalculo();
+						break;
+				      	case 4:
+						  gotoxy(15,4); printf (" CATALOGO DE CUENTAS");
+						  catalogo(); 
+				      	break;
+				      	case 5: 
+				          gotoxy(15,4); printf (" RAYADO DIARIO");
+				          comercialrayadodiario();
+				          ayuda++;
+				      	break; 
+						case 6:
+				      		gotoxy(15,4); printf(" T DE MAYOR  /  ESQUEMAS DE MAYOR");
+				      		 comercialesquemasmayor();
+				      	break;
+						case 7: 
+				      	   gotoxy(15,4); printf (" BALANZA DE COMPROBACION");
+				      	   comercialbalanza();
+				      	break;
+				      	case 8:
+				      		gotoxy(15,4); printf (" BALANCE GENERAL");
+				      	  comercialbalancegeneral();
+				      	break;
+				      	case 9: 
+				      	gotoxy(15,4); printf (" TARJERAS DE ALMACEN");
+				      	  comercialtargetasdealmacen();
+				      	break;
+				      	case 10:
+				      		gotoxy(15,4); printf (" ESTADO DE RESULTADOS");
+				      		comercialestadoderesultados();
+				      	break;
+				      	case 11:
+				      		gotoxy(15,4); printf (" SALIR");
+						   	gotoxy (20,24); printf ("ESC para salir. ");
+				      	break;
+				      	/*(case 9:
+						  comercialcontrasenia();
+				      	break;/*/ 
+						default:
+						   gotoxy (40,24); printf ("ERORR, LA OPCION NO EXISTE"); 
+				      	break; 
+					  }
+					  getch();     
+	   }while(op!=8);
+	  while(tecla!=27){
+          tecla=getch();
+      }
+      
+      break;
+    } 
+		
+	//---------------------------------------AUXILIAAAR--------------------------------------------------------
+	if((strcmp(password, passauxi) == 0)){
+      system("cls");
+      mostrarempresa();
+      
+	  gotoxy (31,12); printf ("%cBIENVENIDO%c",173,33);
+      gotoxy (31,13); printf ("USUARIO:  ");
+	  puts (usuarioaux);
+	  getch();
+      
+	  do{
+	  	      system ("cls"); 
+		      mostrarempresa();
+		      
+			  gotoxy(15,5); printf ("1. MOSTRAR CATALOGO DE CUENTAS"); 
+			  gotoxy(15,6); printf ("2. CREAR ASIENTO CONTABLE"); 
+			  gotoxy(15,7); printf ("3. T DE MAYOR  /  ESQUEMAS DE MAYOR");
+			  gotoxy(15,8); printf ("4. ALMACEN"); 
+			  gotoxy(15,9); printf ("5. SALIR"); 
+			  gotoxy(15,11); printf ("6. CAMBIAR DE USUARIO");  
+		      gotoxy(15,15); printf ("Ingresa una opcion [1-7]:  ");
+		      scanf ("%d%*c",&op); 
+		      
+		       system ("cls"); 
+			   mostrarempresa(); 
+					  switch (op){
+				      	case 1:
+						  gotoxy(15,4); printf (" CATALOGO DE CUENTAS");
+						  catalogo(); 
+				      	break;
+				      	case 2: 
+				          gotoxy(15,4); printf (" ASIENTO CONTABLE");
+				          comercialrayadodiario();
+				          ayuda++;
+				      	break;
+						case 3:
+				      		gotoxy(15,4); printf("3 T DE MAYOR  /  ESQUEMAS DE MAYOR");
+				      		 comercialesquemasmayor();
+				      	break;
+						case 4: 
+						gotoxy(15,4); printf ("4. TARJETAS DE ALMACEN");
+				      	    comercialtargetasdealmacen();
+				      	break;
+				      	case 5:
+				      	  gotoxy (20,24); printf ("ESC para salir. ");
+				      	break;
+				      	case 6:
+				      	   comercialcontrasenia(); 
+				      	break;
+				      	default:
+						   gotoxy (40,24); printf ("ERORR, LA OPCION NO EXISTE"); 
+				      	break; 
+					  }
+					  getch();     
+	   }while(op!=5);
+	  while(tecla!=27){
+          tecla=getch();
+      }
+      
+      break;
+	}else{
+      intentos++;
+      system("cls");
+    }
+  }while (intentos < 3);
+
+  if (intentos == 3){
+   mostrarempresa();
+    system("cls");
+    gotoxy (30,12); printf("Error de acceso");
+    gotoxy (25,14); printf("Pulse una tecla para salir [ ]\b\b");
+    getch();
+  } 	
+}
+/*/void ingresadatosdeempresa(){
+ 	system ("cls"); 
+ 	margen(15,5,90,15);
+ 	margen(10,3,95,30);
+ 	
+ 
+ 	for(i=1;i<=10; i++)
+    {
+	  	gotoxy(2,(i*3));printf(".");Sleep(80);
+	  	gotoxy(5,(i*3));printf(".");Sleep(80);
+	  	gotoxy(8,(i*3));printf(".");Sleep(80);
+	  	gotoxy(97,(i*3));printf(".");Sleep(80);
+	  	gotoxy(100,(i*3));printf(".");Sleep(80);
+	  	gotoxy(103,(i*3));printf(".");Sleep(80);
+	  	gotoxy(106,(i*3));printf(".");Sleep(80);
+	  	gotoxy(109,(i*3));printf(".");Sleep(80);
+	  	gotoxy(112,(i*3));printf(".");Sleep(80);
+		gotoxy(115,(i*3));printf(".");Sleep(80);
+    }
+ 	gotoxy (41,7); printf ("INGRESE LOS DATOS DE LA EMPRESA");Sleep(100);
+ 	gotoxy (30,9); printf ("NOMBRE DE LA EMPRESA: ");Sleep(100);
+    gets (empresa);
+	gotoxy (30,12);printf ("FECHA DE INICIO OPERACIONES: ");Sleep(100);
+	gets (fecha);
+
+	
+ }/*/
+void mostrarempresa(){
+ 	
+ 	 	gotoxy (40,1); printf ("NOMBRE DE LA EMPRESA: COMPUTEC S.A DE C.V");puts (empresa);
+ 		gotoxy (40,2); printf ("FECHA DE INICIO OPERACIONES: 02 ENERO 2023");puts (fecha);
+  	
+ }
+ 
+void catalogo(void){
+  int opcion,regresar, e;
+    do{
+    system("cls");
+    margen2();
+    gotoxy (40, 3); printf(" C A T A L O G O  D E  C U E N T A S ");
+
+    gotoxy(27,8);printf("RUBROS                                                CODIGO");
+    gotoxy(28,9);printf("Activos ............................................. 100");
+    gotoxy(28,10);printf("Pasivos ............................................ 200");
+    gotoxy(28,11);printf("Capital contable ............. ......................300");
+    gotoxy(28,12);printf("Cuentas de resultados ...............................400");
+    gotoxy(28,13);printf("Regresar al men£ principal ......................... 1 ");
+    gotoxy(28,15);printf("Seleccione una opci¢n: ");
+    scanf("%d",&opcion);
+
+    switch(opcion){
+      case 100: gotoxy(23,16);printf("Usted seleccion¢: Activos");
+		sleep(1);
+		system("cls");
+		margen2();
+		gotoxy(33,3);printf(" C U E N T A S  R E S P E C T O  A  S U  S U B R U R B O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("ACTIVO CIRCULANTE ........................ 01 ");
+		gotoxy(25,10);printf("Caja ................................ 001");
+		gotoxy(25,11);printf("Banco ............................... 002");
+		gotoxy(25,12);printf("Mercancias .......................... 003");
+		gotoxy(25,13);printf("Inversiones temporales .............. 004");
+		gotoxy(25,14);printf("Clientes ............................ 005");
+		gotoxy(25,15);printf("Deudores diversos ................... 006");
+		gotoxy(25,16);printf("Funcionarios y empleados ............ 007");
+		gotoxy(25,17);printf("Cuentas y documentos por cobrar ..... 008");
+		gotoxy(25,18);printf("IVA acreditable ..................... 009");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+
+		gotoxy(23,9);printf("ACTIVO NO CIRCULANTE ..................... 02 ");
+		gotoxy(25,10);printf("Equipo de transporte ................ 001");
+		gotoxy(25,11);printf("Terrenos y edificios ................ 002");
+		gotoxy(25,12);printf("Mob. y eq. de oficina ............... 003");
+		gotoxy(25,13);printf("Inversiones permanentes ............. 004");
+		gotoxy(25,14);printf("Equipo de c¢mputo ................... 005");
+		gotoxy(25,15);printf("Depositos en garant¡a ............... 006");
+		gotoxy(25,16);printf("Maquinaria.............. ............ 007");
+		gotoxy(25,17);printf("Patentes,marcas y registros ......... 008");
+		gotoxy(25,18);printf("                                         ");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+
+		gotoxy(23,9);printf("ACTIVO DIFERIDO .......................... 03 ");
+		gotoxy(25,10);printf("Papeler¡as y £tiles ................. 001");
+		gotoxy(25,11);printf("Propaganda y publicidad ............. 002");
+		gotoxy(25,12);printf("Rentas pagadas por anticipado ....... 003");
+		gotoxy(25,13);printf("Primas de seguros ................... 004");
+		gotoxy(25,14);printf("Gastos de instalaci¢n ............... 005");
+		gotoxy(25,15);printf("Gastos de organizaci¢n .............. 006");
+		gotoxy(25,16);printf("Gastos de mercadotecnia ............. 007");
+		gotoxy(25,17);printf("Gastos de investigaci¢n y desarrollo  008");
+		gotoxy(25,18);printf("Anticipo a proveedores .............. 009");
+		gotoxy(25,23);printf("                Presione cualquier tecla para salir[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 200: gotoxy(23,16);printf("Usted seleccion¢: Pasivos");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf(" C U E N T A S  R E S P E C T O  A  S U  S U B R U R B O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("PASIVO CIRCULANTE ........................ 01 ");
+		gotoxy(25,10);printf("Proveedores ......................... 001");
+		gotoxy(25,11);printf("Prestamos bancarios menor a un a¤o .. 002");
+		gotoxy(25,12);printf("Acreedores diversos ................. 003");
+		gotoxy(25,13);printf("Anticipo de clientes ................ 004");
+		gotoxy(25,14);printf("Impuestos pendientes de pago ........ 005");
+		gotoxy(25,15);printf("Documentos por pagar a corto plazo .. 006");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+		gotoxy(23,9);printf("PASIVO NO CIRCULANTE ..................... 02 ");
+		gotoxy(25,10);printf("Hipotecas por pagar ................. 001");
+		gotoxy(25,11);printf("Documentos por pagar a largo plazo .. 002");
+		gotoxy(25,12);printf("Cuentas por pagar a largo plazo ..... 003");
+		gotoxy(25,13);printf("                                         ");
+		gotoxy(25,14);printf("                                         ");
+		gotoxy(25,15);printf("                                         ");
+		/*/gotoxy(30,16);printf("Para hacer referencia a una de las cuentas de ");
+		gotoxy(30,16);printf("pasivo no circulante basta con teclear el c¢digo: ");
+		gotoxy(30,17);printf("200-02-c¢digo de la cuenta");/*/
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+		gotoxy(23,9);printf("PASIVO DIFERIDO .......................... 03 ");
+		gotoxy(25,10);printf("Rentas cobradas por anticipado ...... 001");
+		gotoxy(25,11);printf("Intereses cobrados por anticipado ... 002");
+		gotoxy(25,12);printf("                                          ");
+		gotoxy(25,23);printf("                Presione cualquier tecla para salir[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 300: gotoxy(20,16);printf("Usted seleccion¢: Capital contable");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf("C U E N T A S  R E S P E C T O  A  S U  S U B R U B R O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("CAPITAL CONTRIBUIDO ...................... 01");
+		gotoxy(25,10);printf("Capital social ...................... 001");
+		gotoxy(25,11);printf("Aportaciones para aumentos de capital 002");
+		gotoxy(25,12);printf("Donaciones .......................... 003");
+		
+		gotoxy(23,15);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(25,16);printf("CAPITAL GANADO ........................... 02");
+		gotoxy(25,17);printf("Utilidades retenidas ................ 001");
+		gotoxy(25,18);printf("P‚rdidas acumuladas ................. 002");
+		gotoxy(25,23);printf("Presione cualquier tecla para regresar al men£[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 400: gotoxy(23,16);printf("Usted seleccion¢: Resultados");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf("C U E N T A S  R E S P E C T O  A  S U  S U B R U B R O ");
+		gotoxy(23,8);printf("CUENTAS                               CODIGO");
+		gotoxy(25,9);printf("Ventas............................... 001");
+		gotoxy(25,10);printf("Devoluciones sobre ventas ........... 002");
+		gotoxy(25,11);printf("Compras ............................. 003");
+		gotoxy(25,12);printf("Devoluciones sobre compras .......... 004");
+		gotoxy(25,13);printf("Mercancias generales ................ 005");
+		gotoxy(25,14);printf("Costos de ventas .................... 006");
+		gotoxy(25,15);printf("Gastos generales .................... 007");
+		gotoxy(25,16);printf("Otros gastos ........................ 008");
+		gotoxy(25,17);printf("Otros productos ..................... 009");
+		/*/gotoxy(7,19);printf("Para hacer referencia a una de las cuentas de ");
+		gotoxy(7,20);printf("capital contable basta con teclear el c¢digo: ");
+		gotoxy(7,21);printf("400 - c¢digo de la cuenta");/*/
+		gotoxy(25,23);printf("Presione cualquier tecla para regresar al men£[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 1:  gotoxy(20,16);printf("Usted seleccion¢: Regresar al men£");
+	       sleep(1);
+	       regresar=0;
+	       break;
+
+      default: gotoxy(20,16);printf("­Seleccione una opci¢n v lida!");
+	       sleep(1);
+	       system("cls");
+	       regresar=1;
+	       break;
+    }
+  }while(regresar==1);
+}
+
+void comercialmostrarcuentas22(){
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+  int opcion,regresar, e;
+    do{
+    system("cls");
+    margen2();
+    color(hConsole,9);
+    gotoxy (45, 3); printf(" C A T A L O G O  D E  C U E N T A S ");
+    color(hConsole,7);
+
+    gotoxy(27,8);printf("RUBROS                                                CODIGO");
+    gotoxy(28,9);printf("Activos ............................................. 100");
+    gotoxy(28,10);printf("Pasivos ............................................ 200");
+    gotoxy(28,11);printf("Capital contable ............. ......................300");
+    gotoxy(28,12);printf("Cuentas de resultados ...............................400");
+    gotoxy(28,13);printf("Regresar al men£ principal ......................... 1 ");
+    gotoxy(28,15);printf("Seleccione una opci¢n: ");
+    scanf("%d",&opcion);
+
+    switch(opcion){
+      case 100: gotoxy(23,16);printf("Usted seleccion¢: Activos");
+		sleep(1);
+		system("cls");
+		margen2();
+		gotoxy(33,3);printf(" C U E N T A S  R E S P E C T O  A  S U  S U B R U R B O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("ACTIVO CIRCULANTE ........................ 01 ");
+		gotoxy(25,10);printf("Caja ................................ 001");
+		gotoxy(25,11);printf("Banco ............................... 002");
+		gotoxy(25,12);printf("Mercancias .......................... 003");
+		gotoxy(25,13);printf("Inversiones temporales .............. 004");
+		gotoxy(25,14);printf("Clientes ............................ 005");
+		gotoxy(25,15);printf("Deudores diversos ................... 006");
+		gotoxy(25,16);printf("Funcionarios y empleados ............ 007");
+		gotoxy(25,17);printf("Cuentas y documentos por cobrar ..... 008");
+		gotoxy(25,18);printf("IVA acreditable ..................... 009");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+
+		gotoxy(23,9);printf("ACTIVO NO CIRCULANTE ..................... 02 ");
+		gotoxy(25,10);printf("Equipo de transporte ................ 001");
+		gotoxy(25,11);printf("Terrenos y edificios ................ 002");
+		gotoxy(25,12);printf("Mob. y eq. de oficina ...... 003");
+		gotoxy(25,13);printf("Inversiones permanentes ............. 004");
+		gotoxy(25,14);printf("Equipo de c¢mputo ................... 005");
+		gotoxy(25,15);printf("Depositos en garant¡a ............... 006");
+		gotoxy(25,16);printf("Maquinaria.............. ............ 007");
+		gotoxy(25,17);printf("Patentes,marcas y registros ......... 008");
+		gotoxy(25,18);printf("                                         ");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+
+		gotoxy(23,9);printf("ACTIVO DIFERIDO .......................... 03 ");
+		gotoxy(25,10);printf("Papeler¡as y £tiles ................. 001");
+		gotoxy(25,11);printf("Propaganda y publicidad ............. 002");
+		gotoxy(25,12);printf("Rentas pagadas por anticipado ....... 003");
+		gotoxy(25,13);printf("Primas de seguros ................... 004");
+		gotoxy(25,14);printf("Gastos de instalaci¢n ............... 005");
+		gotoxy(25,15);printf("Gastos de organizaci¢n .............. 006");
+		gotoxy(25,16);printf("Gastos de mercadotecnia ............. 007");
+		gotoxy(25,17);printf("Gastos de investigaci¢n y desarrollo  008");
+		gotoxy(25,18);printf("Anticipo a proveedores .............. 009");
+		gotoxy(25,23);printf("                Presione cualquier tecla para salir[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 200: gotoxy(23,16);printf("Usted seleccion¢: Pasivos");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf(" C U E N T A S  R E S P E C T O  A  S U  S U B R U R B O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("PASIVO CIRCULANTE ........................ 01 ");
+		gotoxy(25,10);printf("Proveedores ......................... 001");
+		gotoxy(25,11);printf("Prestamos bancarios menor a un a¤o .. 002");
+		gotoxy(25,12);printf("Acreedores diversos ................. 003");
+		gotoxy(25,13);printf("Anticipo de clientes ................ 004");
+		gotoxy(25,14);printf("Impuestos pendientes de pago ........ 005");
+		gotoxy(25,15);printf("Documentos por pagar a corto plazo .. 006");
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+		gotoxy(23,9);printf("PASIVO NO CIRCULANTE ..................... 02 ");
+		gotoxy(25,10);printf("Hipotecas por pagar ................. 001");
+		gotoxy(25,11);printf("Documentos por pagar a largo plazo .. 002");
+		gotoxy(25,12);printf("Cuentas por pagar a largo plazo ..... 003");
+		gotoxy(25,13);printf("                                         ");
+		gotoxy(25,14);printf("                                         ");
+		gotoxy(25,15);printf("                                         ");
+		/*/gotoxy(30,16);printf("Para hacer referencia a una de las cuentas de ");
+		gotoxy(30,16);printf("pasivo no circulante basta con teclear el c¢digo: ");
+		gotoxy(30,17);printf("200-02-c¢digo de la cuenta");/*/
+		gotoxy(25,23);printf("Presione cualquier tecla para pasar al sig subrubro[ ]\b\b");
+		getch();
+		gotoxy(23,9);printf("PASIVO DIFERIDO .......................... 03 ");
+		gotoxy(25,10);printf("Rentas cobradas por anticipado ...... 001");
+		gotoxy(25,11);printf("Intereses cobrados por anticipado ... 002");
+		gotoxy(25,12);printf("                                          ");
+		gotoxy(25,23);printf("                Presione cualquier tecla para salir[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 300: gotoxy(20,16);printf("Usted seleccion¢: Capital contable");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf("C U E N T A S  R E S P E C T O  A  S U  S U B R U B R O ");
+		gotoxy(23,8);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(23,9);printf("CAPITAL CONTRIBUIDO ...................... 01");
+		gotoxy(25,10);printf("Capital social ...................... 001");
+		gotoxy(25,11);printf("Aportaciones para aumentos de capital 002");
+		gotoxy(25,12);printf("Donaciones .......................... 003");
+		
+		gotoxy(23,15);printf("SUBRUBRO Y CUENTAS                       CODIGO");
+		gotoxy(25,16);printf("CAPITAL GANADO ........................... 02");
+		gotoxy(25,17);printf("Utilidades retenidas ................ 001");
+		gotoxy(25,18);printf("P‚rdidas acumuladas ................. 002");
+		gotoxy(25,23);printf("Presione cualquier tecla para regresar al men£[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 400: gotoxy(20,16);printf("Usted seleccion¢: Resultados");
+		sleep(1);
+		system("cls");
+		margen2();
+        gotoxy(33,3);printf("C U E N T A S  R E S P E C T O  A  S U  S U B R U B R O ");
+		gotoxy(23,8);printf("CUENTAS                               CODIGO");
+		gotoxy(25,9);printf("Ventas............................... 001");
+		gotoxy(25,10);printf("Devoluciones sobre ventas ........... 002");
+		gotoxy(25,11);printf("Compras ............................. 003");
+		gotoxy(25,12);printf("Devoluciones sobre compras .......... 004");
+		gotoxy(25,13);printf("Mercancias generales ................ 005");
+		gotoxy(25,14);printf("Costos de ventas .................... 006");
+		gotoxy(25,15);printf("Gastos generales .................... 007");
+		gotoxy(25,16);printf("Otros gastos ........................ 008");
+		gotoxy(25,17);printf("Otros productos ..................... 009");
+		/*/gotoxy(7,19);printf("Para hacer referencia a una de las cuentas de ");
+		gotoxy(7,20);printf("capital contable basta con teclear el c¢digo: ");
+		gotoxy(7,21);printf("400 - c¢digo de la cuenta");/*/
+		gotoxy(25,23);printf("Presione cualquier tecla para regresar al men£[ ]\b\b");
+		getch();
+		regresar=1;
+		break;
+
+      case 1:  gotoxy(20,16);printf("Usted seleccion¢: Regresar al men£");
+	       sleep(1);
+	       regresar=0;
+	       break;
+
+      default: gotoxy(20,16);printf("­Seleccione una opci¢n v lida!");
+	       sleep(1);
+	       system("cls");
+	       regresar=1;
+	       break;
+    }
+  }while(regresar==1);
+}
+void comercialrayadodiario(){
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	//modificaciones
+    char subcta [40];
+	char fecha[20]; 
+	char cuenta3[20]; 
+	char concepto[50]; 
+	char codi[60];
+	char Codi[60],sub[20];
+	int i=0, pos, band=0,op2, op3,j, esp=0,op;
+	float debe=0, haber=0, sumadebe=0, sumahaber=0, parcial,total,pir,pre;  
+	int x,k,v[10],m;
+	for (x=0;x<10;x++){
+		v[x] = 0;
+	}
+	system("cls"); 
+	mostrarempresa();
+		margen1(1,8,79,23);
+		margen1(14,8,26,23);
+		margen1(56,8,67,23);
+		margen1(1,8,79,10);
+		margen1(1,21,79,23);
+	
+		gotoxy(2,9);printf("    FECHA       C%cDIGO             CONCEPTO               DEBE       HABER",224);
+		//gotoxy(40,11);printf("- %d -",num_asiento+a);	  
+		//mov[z].asiento=num_asiento+a;
+
+/*	gotoxy(8,7); printf ("FECHA");
+	gotoxy(43,7); printf ("CONCEPTO");
+	gotoxy(85,7); printf ("HABER");
+	gotoxy(70,7); printf ("DEBE");
+	gotoxy(20,7); printf ("CODIGO");
+	
+	margen(5,5,15,48);
+	margen(5,5,30,48);
+	margen(5,5,95,48);
+	margen(5,5,80,48);
+	margen(5,5,67,48);	*/	
+	//comercialmostrarcuentas22 ();	
+	gotoxy(6,11); gets(fecha); 
+	k=0;
+	do{
+		gotoxy(17,(11+i)); gets(codi);
+        band=0;
+		for(j=0;j<N;j++){
+				if ((strcmp(codi,comercial[j].codigo1 ) == 0) ){
+			     band=1;
+			     pos=j;
+			     v[k] = pos;
+			     k++;
+				}
+		}
+		if (band==1){
+			gotoxy(32,(11+i)); puts (comercial[pos].cuenta);
+			if ((strcmp(codi,comercial[5].codigo1) == 0) ){
+				total=0;
+				gotoxy(97,21);printf("NOMBRE MERCANCIA: ");
+				gets(sub);
+				gotoxy(97,23);printf("CUANTAS PIEZAS: ");
+				scanf("%f",&pir);
+				gotoxy(97,25);printf("PRECIO UNITARIO:$ ");
+				scanf("%f",&pre);
+				//gotoxy(97,27);printf("CARGAR [1]");
+				//gotoxy(97,28);printf("ABONAR [0]");
+				gotoxy(97,30);printf("¨Debe [1] o haber [0]?:");
+				scanf("%d",&op);
+				getch();
+				borar();
+			    if(op==1)
+				{
+					total=pir*pre;
+					if(p==0){
+						strcpy(subcuenta[pa],sub);
+						piezas[pa]=pir;
+						precio[pa]=pre;
+						merdebe[pa]=total;
+						merhaber[pa]=0;
+						pa++;
+						p++;
+						y++;
+					}
+					else{
+						if(strcmp(sub,subcuenta[0])==0){
+							piezas[pa]=pir;
+							precio[pa]=pre;
+							merdebe[pa]=total;
+							merhaber[pa]=0;
+							pa++;
+						}
+						else{
+							if(pe==0){
+								strcpy(subcuenta1[pe],sub);
+								piezas1[pe]=pir;
+								precio1[pe]=pre;
+								merdebe1[pe]=total;
+								merhaber1[pe]=0;
+								pe++;
+								p++;
+							}
+							else{
+								if(strcmp(sub,subcuenta1[0])==0){
+									piezas1[pe]=pir;
+									precio1[pe]=pre;
+									merdebe1[pe]=total;
+									merhaber1[pe]=0;
+									pe++;
+								}
+								else{
+									if(pi==0){
+										strcpy(subcuenta2[pi],sub);
+										piezas2[pi]=pir;
+										precio2[pi]=pre;
+										merdebe2[pi]=total;
+										merhaber2[pi]=0;
+										pi++;
+										p++;
+									}
+									else{
+										if(strcmp(sub,subcuenta2[0])==0){
+											piezas2[pi]=pir;
+											precio2[pi]=pre;
+											merdebe2[pi]=total;
+											merhaber2[pi]=0;
+											pi++;
+										}
+										else{
+											if(po==0){
+												strcpy(subcuenta3[po],sub);
+												piezas3[po]=pir;
+												precio3[po]=pre;
+												merdebe3[po]=total;
+												merhaber3[po]=0;
+												po++;
+												p++;
+											}
+											else{
+												if(strcmp(sub,subcuenta3[0])==0){
+													piezas3[po]=pir;
+													precio3[po]=pre;
+													merdebe3[po]=total;
+													merhaber3[po]=0;
+													po++;
+												}
+												else{
+													if(pu==0){
+														strcpy(subcuenta4[pu],sub);
+														piezas4[pu]=pir;
+														precio4[pu]=pre;
+														merdebe4[pu]=total;
+														merhaber4[pu]=0;
+														pu++;
+														p++;
+													}
+													else{
+														if(strcmp(sub,subcuenta4[0])==0){
+															piezas4[pu]=pir;
+															precio4[pu]=pre;
+															merdebe4[pu]=total;
+															merhaber4[pu]=0;
+															pu++;
+														}
+													}
+												}
+											}
+										}
+									}
+								}	
+							}
+						}
+					}
+					gotoxy(70,(11+i)); printf ("$ ");printf("%.0f",total);
+					comercial[pos].debe[aux[pos]]+=total;
+					sumadebe+=total;
+					aux[pos]++;
+					gotoxy(81,(11+i)); printf ("$ ");printf("0");
+					comercial[pos].haber[aux2[pos]]+=0;
+					sumahaber+=0;
+					aux2[pos]++;
+					if (ayuda==0){
+						inventarioinicial=merdebe[0]+merdebe1[0]+merdebe2[0]+merdebe3[0]+merdebe4[0];
+					}
+		     	}
+				else
+				{
+					if(n>0)
+					{
+						pre=medi;
+						gotoxy(115,25);printf("%.0f",pre);
+					}
+					if(n1>0)
+					{
+						pre=medi1;
+						gotoxy(115,25);printf("%.0f",pre);
+					}
+					if(n2>0)
+					{
+						pre=medi2;
+						gotoxy(115,25);printf("%.0f",pre);
+					}
+					if(n3>0)
+					{
+						pre=medi3;
+						gotoxy(115,25);printf("%.0f",pre);
+					}
+					if(n4>0)
+					{
+						pre=medi4;
+						gotoxy(115,25);printf("%.0f",pre);
+					}
+					total=pir*pre;
+					if(y==0){
+						gotoxy(96,5);printf("NO CUENTAS CON SUFICIENTES MERCANCIAS");
+						gotoxy(96,6);printf("INGRESA NUEVAMENTE");
+						gotoxy(17,11+i);printf("      ");
+						gotoxy(32,11+i);printf("            ");
+					    getch(); 
+					    borar();
+					    i=i-2;
+					}
+					else{
+						if(strcmp(sub,subcuenta[0])==0){
+							piezas[pa]=pir;
+							precio[pa]=pre;
+							merdebe[pa]=0;
+							merhaber[pa]=total;
+							pa++;
+						}
+						if(strcmp(sub,subcuenta1[0])==0){
+							piezas1[pe]=pir;
+							precio1[pe]=pre;
+							merdebe1[pe]=0;
+							merhaber1[pe]=total;
+							pe++;
+						}
+						if(strcmp(sub,subcuenta2[0])==0){
+							piezas2[pi]=pir;
+							precio2[pi]=pre;
+							merdebe2[pi]=0;
+							merhaber2[pi]=total;
+							pi++;
+						}
+						if(strcmp(sub,subcuenta3[0])==0){
+							piezas3[po]=pir;
+							precio3[po]=pre;
+							merdebe3[po]=0;
+							merhaber3[po]=total;
+							po++;
+						}
+						if(strcmp(sub,subcuenta4[0])==0){
+							piezas4[pu]=pir;
+							precio4[pu]=pre;
+							merdebe4[pu]=0;
+							merhaber4[pu]=total;
+							pu++;
+						}
+						gotoxy(70,(11+i)); printf ("$ ");printf("0");
+						comercial[pos].debe[aux[pos]]+=0;
+						sumadebe+=0;
+						aux[pos]++;
+						
+						gotoxy(81,(11+i)); printf ("$ ");printf("%.0f",total);
+						comercial[pos].haber[aux2[pos]]+=total;
+						sumahaber+=total;
+						aux2[pos]++;
+					
+					}
+				}
+				i=i+2;
+			}
+			else
+			{
+				
+					//gotoxy(97,27);printf("CARGAR [1]");
+					//gotoxy(97,28);printf("ABONAR [0]");
+					//gotoxy(97,30);printf("QUE DESEAS REALIZAR [ ]\b\b");
+					gotoxy(97,30);printf("¨Debe [1] o haber [0]?:");
+					scanf("%d",&op);
+				borar();
+				if(op==1)
+				{
+					/*/	gotoxy(70,(11+i)); printf ("$ "); scanf ("%f",&debe);
+						comercial[pos].debe[aux[pos]]+=debe;
+						sumadebe+=debe;
+						aux[pos]++;
+						gotoxy(81,(11+i)); printf ("$ ");printf("0");
+						comercial[pos].haber[aux2[pos]]+=0;
+						sumahaber+=0;
+						aux2[pos]++;/*/
+						gotoxy(57,(11+i)); printf ("$ "); scanf ("%f",&debe);
+						comercial[pos].debe[aux[pos]]+=debe;
+						sumadebe+=debe;
+						aux[pos]++;
+						gotoxy(70,(11+i)); printf ("$ ");printf("0");
+						comercial[pos].haber[aux2[pos]]+=0;
+						sumahaber+=0;
+						aux2[pos]++;
+				}
+				else
+				{
+						//gotoxy(57,(11+i)); printf ("$ ");printf("0");
+						comercial[pos].debe[aux[pos]]+=0;
+						sumadebe+=0;
+						aux[pos]++;
+						gotoxy(70,(11+i)); printf ("$ "); scanf ("%f",&haber);
+						comercial[pos].haber[aux2[pos]]+=haber;
+						sumahaber+=haber;
+						aux2[pos]++;
+		    
+				}
+				i=i+2;	
+		    }
+		//    gotoxy(70,45); printf ("$ %.2f",sumadebe);
+		//	gotoxy(81,45); printf ("$ %.2f",sumahaber); 
+					
+				gotoxy(101,15);printf ("¿QUIERES OTRA CUENTA");	
+				gotoxy(103,17); printf ("SI[1] NO[0]: ");
+				scanf("%d%*c",&op2);
+			/*/gotoxy(33,22); printf("Total");	 	
+			gotoxy(70,45); printf ("$ %.2f",sumadebe);
+			gotoxy(81,45); printf ("$ %.2f",sumahaber);  /*/
+			borar(); 
+		}
+		else{
+			color(hConsole,4);
+			gotoxy(96,5);printf ("Error, la cuenta no existe");
+			gotoxy(96,6);printf("Ingrese nuevamente");
+			color(hConsole,7);
+			gotoxy(17,11+i);printf("      ");
+		    getch(); 
+		    borar();
+		}
+			
+	}while(op2!=0);
+	
+ 	gotoxy(30,23); printf ("                                               ");
+	gotoxy(30,14); printf ("Sumas totales: ");
+	gotoxy(57,14); printf ("$ %.2f",sumadebe);
+	gotoxy(70,14); printf ("$ %.2f",sumahaber); 
+	
+	if (sumadebe==sumahaber){
+	gotoxy(30,25); printf ("                                         ");
+	color(hConsole,2);
+	gotoxy(32,47); printf ("El asiento ha sido guardado correctamente"); 
+	color(hConsole,7);
+	getchar();
+//	gotoxy(32,48); gets(concepto); 
+	
+	}
+	
+	else{
+		do{
+	    	color(hConsole,4);
+		    gotoxy(96,6); printf ("ERROR, NO HAY PARTIDA DOBLE."); 
+			gotoxy(96,7);printf("INGRESA NUEVAMENTE");
+			color(hConsole,7);
+			printf ("NUMERO DE LA CUENTA A MODIFICAR");
+			scanf ("%d",&k);
+			borar();
+			gotoxy(97,27);printf("CARGAR [1]");
+			gotoxy(97,28);printf("ABONAR [0]");
+			gotoxy(97,30);printf("QUE DESEAS REALIZAR [ ]\b\b");
+			scanf("%d",&op);
+			borar();
+			k = k - 1;
+			aux[pos]--;
+			aux2[pos]--;
+			if(op==1)
+			{
+				sumadebe-=comercial[v[k]].debe[aux[pos]];
+				sumahaber-=comercial[v[k]].haber[aux2[pos]]; 
+				gotoxy(70,(11+(k*2))); printf ("      ");
+				gotoxy(70,(11+(k*2))); printf ("$ "); scanf ("%f",&debe);
+				comercial[v[k]].debe[aux[pos]] = debe;
+				sumadebe+=debe;
+				gotoxy(81,(11+(k*2))); printf ("      ");
+				gotoxy(81,(11+(k*2))); printf ("$ ");printf ("0 ");
+				comercial[v[k]].haber[aux2[pos]] = 0;
+				sumahaber+=0;
+		    	aux[pos]++;
+				aux2[pos]++;
+					
+			}
+			else
+			{
+				sumadebe-=comercial[v[k]].debe[aux[pos]];
+				sumahaber-=comercial[v[k]].haber[aux2[pos]]; 
+				gotoxy(70,(11+(k*2))); printf ("      ");
+				gotoxy(70,(11+(k*2))); printf ("$ "); printf ("0 ");
+				comercial[v[k]].debe[aux[pos]] = 0;
+				sumadebe+=0;
+				gotoxy(81,(11+(k*2))); printf ("      ");
+				gotoxy(81,(11+(k*2))); printf ("$ "); scanf ("%f",&haber);
+				comercial[v[k]].haber[aux2[pos]] = haber;
+				sumahaber+=haber;
+		    	aux[pos]++;
+				aux2[pos]++;		
+			}
+			gotoxy(70,45); printf ("$ %.2f",sumadebe);
+			gotoxy(81,45); printf ("$ %.2f",sumahaber); 
+			if (sumadebe==sumahaber){
+				gotoxy(30,25); printf ("                                         ");
+				gotoxy(32,47); printf ("CONCEPTO DEL ASIENTO"); 
+				gotoxy(32,48); gets(concepto); 
+		    }
+		}while(sumadebe!=sumahaber);	
+		gotoxy(70,45); printf ("$ %.2f",sumadebe);
+		gotoxy(81,45); printf ("$ %.2f",sumahaber); 		
+	}
+	getch();
+}
+
+void comercialesquemasmayor(){
+	HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+	int a, b, c, band=0, d,e,f, j=0, pos,opcion;
+	char cuentacompara[30]; 
+	char codigocompara[30]; 
+	system("cls");
+	do{
+		    mostrarempresa();
+	
+		    system("cls");
+			margen2();
+			color(hConsole,9);
+		    gotoxy(35,3);printf ("E S Q U E M A S   DE   M A Y O R  -  M E N %c",233);
+		    color(hConsole,7);
+		    //gotoxy(17,7);printf ("MENU");
+			gotoxy(25,9);printf ("1. General");
+		    gotoxy(25,10);printf ("2. Cuenta");
+		    gotoxy(25,11);printf ("3. Salir");
+		    gotoxy(25,12);printf ("Elige una opcion: ");
+		    scanf  ("%d%*c",&opcion);
+		     
+		    system("cls");
+		    
+		    switch (opcion){
+		    	case 1:
+		    		system("cls");
+    mostrarempresa();
+	for(i=0; i<N; i++ ){
+		movimientoacreedor=0;
+		movimientodeudor=0; 
+		
+		if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			system("cls");
+		  mostrarempresa();
+		   gotoxy (10,3); puts(comercial[i].cuenta);	
+			
+	
+			for(f=0;f<20;f++){
+				if(comercial[i].debe[f]>0){
+			       movimientodeudor+=comercial[i].debe[f];
+				    gotoxy(6,14); printf("%.2f",movimientodeudor);	   
+				}
+				if(comercial[i].haber[f]>0){
+			       movimientoacreedor+=comercial[i].haber[f];	
+				    gotoxy(18,14); printf("%.2f",movimientoacreedor);
+				}
+			}
+						
+			for(c=0;c<20;c++){
+				if(comercial[i].debe[c]>0){
+				   gotoxy(6,5+c); printf("%.2f",comercial[i].debe[c]);
+				}  
+				if(comercial[i].haber[c]>0){
+				  gotoxy(18,5+c); printf("%.2f",comercial[i].haber[c]);
+				}
+				
+			}
+		
+			   for(b=0;b<30;b++){
+				  gotoxy(3+b,4); printf ("%c",196);
+				}
+				for(a=0;a<12;a++){
+				  	gotoxy(16,5+a);printf ("%c",179);
+				}
+			   for(d=0;d<30;d++){
+				  gotoxy(3+d,13); printf ("%c",196);
+				}
+				for(e=0;e<30;e++){
+				  gotoxy(3+e,15); printf ("%c",196);
+				}
+				
+			gotoxy(2,14); printf("MD");
+			gotoxy(36,14); printf("MA");
+			gotoxy(2,16); printf("SD");
+			gotoxy(36,16); printf("SA");
+		    
+			if(movimientoacreedor>movimientodeudor){
+		        saldoacreedor=movimientoacreedor-movimientodeudor;
+		       gotoxy(18,16);printf("%.2f",saldoacreedor); 
+		        
+			}else if(movimientodeudor>movimientoacreedor){
+			  saldodeudor=	movimientodeudor-movimientoacreedor;
+			  gotoxy(6,16); printf("%.2f",saldodeudor);
+			}else if(movimientodeudor==movimientoacreedor){
+				 saldoacreedor=0;
+				 saldodeudor=0;
+				 gotoxy(18,16);printf("%.2f",saldoacreedor);
+				 gotoxy(6,16); printf("%.2f",saldodeudor);
+			}
+			getch();
+		}
+	
+	}
+				break; 
+		    	case 2:
+		    		system("cls");
+		    		mostrarempresa();
+		    		gotoxy(45,5); printf ("cuenta: "); 
+		    		gets(cuentacompara); 
+		    		gets (codigocompara);
+		
+		    	for(j=0;j<N;j++){
+		    		printf("\n");
+						if ((strcmp(comercial[j].cuenta,cuentacompara) == 0) || (strcmp(comercial[j].codigo1,codigocompara) == 0)){
+					     band=1;
+					     pos=j;
+					     getch();
+						}
+				}
+		    
+		    if (band==1){
+				movimientoacreedor=0;
+				movimientodeudor=0; 
+				   gotoxy (10,3); puts(comercial[pos].cuenta);	
+					
+					for(f=0;f<20;f++){
+						if(comercial[pos].debe[f]>0){
+					       movimientodeudor+=comercial[pos].debe[f];
+							gotoxy(6,14); printf("%.2f",movimientodeudor);	   
+						}
+						if(comercial[pos].haber[f]>0){
+					       movimientoacreedor+=comercial[pos].haber[f];	
+						    gotoxy(18,14); printf("%.2f",movimientoacreedor);
+						}
+					}
+								
+					for(c=0;c<20;c++){
+						if(comercial[pos].debe[c]>0){
+						   gotoxy(6,5+c); printf("%.2f",comercial[pos].debe[c]);
+						}  
+						if(comercial[pos].haber[c]>0){
+						  gotoxy(18,5+c); printf("%.2f",comercial[pos].haber[c]);
+						}
+		
+		
+					}
+			
+					for(b=0;b<30;b++){
+					  gotoxy(3+b,4); printf ("%c",196);
+					}
+					for(a=0;a<12;a++){
+					  	gotoxy(16,5+a);printf ("%c",179);
+					}
+				   for(d=0;d<30;d++){
+					  gotoxy(3+d,13); printf ("%c",196);
+					}
+					for(e=0;e<30;e++){
+					  gotoxy(3+e,15); printf ("%c",196);
+					}
+					   
+					gotoxy(2,14); printf("MD");
+					gotoxy(36,14); printf("MA");
+					gotoxy(2,16); printf("SD");
+					gotoxy(36,16); printf("SA");
+				    
+					if(movimientoacreedor>movimientodeudor){
+				        saldoacreedor=movimientoacreedor-movimientodeudor;
+				       gotoxy(18,16);printf("%.2f",saldoacreedor); 
+				        
+					}else if(movimientodeudor>movimientoacreedor){
+					  saldodeudor=	movimientodeudor-movimientoacreedor;
+					  gotoxy(6,16); printf("%.2f",saldodeudor);
+					}else if(movimientodeudor==movimientoacreedor){
+						 saldoacreedor=0;
+						 saldodeudor=0;
+						 gotoxy(18,16);printf("%.2f",saldoacreedor);
+						 gotoxy(6,16); printf("%.2f",saldodeudor);
+					}
+					getch();
+			
+			}
+		    	break;
+		    	
+		    	default: printf ("Eligio la opcion de salir");
+		    	break;
+		    	
+			}
+	}while(opcion!=3);
+
+	getch();
+		
+}
+
+
+void comercialbalanza(){
+
+	int a, b, c, band=0, d,e,f, acu=0;
+	summoviacreedor=0;
+	summovideudor=0;
+	sumsalacreedor=0;
+	sumsaldeudor=0;
+	system("cls");
+	
+	
+	mostrarempresa();
+	margen(10,5,105,28);
+	margen(10,5,105,9);
+	margen(40,5,105,28);
+	margen(56,5,105,28);
+	margen(71,5,105,28); 
+	margen(86,5,105,28);
+	margen(10,5,105,24);
+	gotoxy(22,7); printf("Cuentas");
+	gotoxy(43,7); printf("Mov. Deudor");
+	gotoxy(57,7);printf("Mov. Acreedor");
+	gotoxy(73,7); printf("Sal. Deudor");
+	gotoxy(87,7);printf ("Sal. Acreedor");
+	gotoxy(22,26);printf("Sumas iguales");
+	
+
+	for(i=0; i<N; i++ ){
+		
+		movimientoacreedor=0;
+		movimientodeudor=0;  
+		saldoacreedor=0;
+		saldodeudor=0;
+		
+		if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+		acu++;
+		   gotoxy (12,9+acu); puts(comercial[i].cuenta);	
+			
+			for(f=0;f<20;f++){
+				if(comercial[i].debe[f]>0){
+			       movimientodeudor+=comercial[i].debe[f];
+				    gotoxy(43,9+acu); printf("%.2f",movimientodeudor);	   
+				}
+				if(comercial[i].haber[f]>0){
+			       movimientoacreedor+=comercial[i].haber[f];	
+				    gotoxy(57,9+acu); printf("%.2f",movimientoacreedor);
+				}
+			}
+				
+			if(movimientoacreedor>movimientodeudor){
+		        saldoacreedor=movimientoacreedor-movimientodeudor;
+		       gotoxy(87,9+acu);printf("%.2f",saldoacreedor); 
+		        sumsalacreedor+=saldoacreedor;
+			}
+			 if(movimientodeudor>movimientoacreedor){
+			  saldodeudor=movimientodeudor-movimientoacreedor;
+			  gotoxy(73,9+acu); printf("%.2f",saldodeudor);
+			  sumsaldeudor+=saldodeudor;
+			}
+			 if(movimientodeudor==movimientoacreedor){
+				 saldoacreedor=0;
+				 saldodeudor=0;
+				 gotoxy(87,9+acu);printf("%.2f",saldoacreedor);
+				 gotoxy(73,9+acu); printf("%.2f",saldodeudor);
+				 sumsalacreedor+=saldoacreedor;
+				 sumsaldeudor+=saldodeudor;
+			}
+			 summovideudor+=movimientodeudor;
+			 summoviacreedor+=movimientoacreedor;
+			 comercial[i].saldodeudor=saldodeudor;
+			 comercial[i].saldoacreedor=saldoacreedor;
+		}
+	
+	}
+	gotoxy(43,26); printf("%.2f",summovideudor);
+	gotoxy(57,26); printf("%.2f",summoviacreedor);
+	gotoxy(73,26); printf("%.2f",sumsaldeudor);
+	gotoxy(87,26); printf("%.2f",sumsalacreedor);
+	getch();
+	
+}
+
+
+void comercialbalancegeneral(){
+	
+	int acumula=0;
+	totalACcirculante=0, totaAClfijo=0, totalACdiferido=0, totalPAScirculante=0, totalPASfijo=0, totalPASdiferido=0;
+	totalAC=0, totalPAS=0;
+	suma1degeneral=0, suma2degeneral=0, suma3degeneral=0; 
+	
+	mostrarempresa();
+	margen(10,5,105,50);
+	margen(10,5,105,9);
+	margen(40,5,105,50);
+	margen(50,5,105,50);
+	
+	
+	margen(68,5,105,50);
+	margen(87,5,105,50);
+	margen(105,5,105,50);
+
+	gotoxy(22,7); printf("Cuentas");
+	
+	
+	gotoxy(11,10); printf("ACTIVO");
+	gotoxy(11,11);printf("ACTIVO CIRCULANTE");
+
+	
+	for(i=2; i<13; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+	       	   	totalACcirculante+=comercial[i].saldodeudor;
+	       	   	suma1degeneral+=comercial[i].saldodeudor;
+			}
+			if(comercial[i].saldoacreedor>0){
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totalACcirculante+=comercial[i].saldoacreedor;
+				suma1degeneral+=comercial[i].saldoacreedor;
+			}
+		}
+	}
+	acumula++;
+	//15,25,27,36,38,44,46,48,50.51
+	gotoxy(11,11+(acumula)); printf("TOT. ACT. CIRCULANTE");
+    gotoxy(69,11+(acumula)); printf("%.2f",totalACcirculante);
+    
+	acumula++;
+	gotoxy(11,11+(acumula));printf("ACTIVO FIJO"); 
+	for(i=15; i<25; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+	       	   	totaAClfijo+=comercial[i].saldodeudor;
+	       	   	suma1degeneral+=comercial[i].saldodeudor;
+			}
+			else{
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totaAClfijo+=comercial[i].saldoacreedor;
+								suma1degeneral+=comercial[i].saldoacreedor;
+
+			}
+		}
+	}
+	acumula++;
+	gotoxy(11,11+(acumula)); printf("TOT. ACT. FIJO");
+    gotoxy(69,11+(acumula)); printf("%.2f",totaAClfijo);	
+    
+		
+	acumula++;
+	gotoxy(11,11+(acumula));printf("ACTIVO DIFERIDO"); 
+	for(i=27; i<36; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+	       	   	totalACdiferido+=comercial[i].saldodeudor;
+	       	   	suma1degeneral+=comercial[i].saldodeudor;
+			}
+			else{
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totalACdiferido+=comercial[i].saldoacreedor;
+								suma1degeneral+=comercial[i].saldoacreedor;
+
+			}
+		}
+	}
+	acumula++;
+	gotoxy(11,11+(acumula)); printf("TOT. ACT. DIFERIDO");
+	gotoxy(69,11+(acumula)); printf("%.2f",totalACdiferido);    
+	
+	acumula++;	
+	
+	totalAC=totalACcirculante+totaAClfijo+totalACdiferido;
+    gotoxy(11,11+(acumula)); printf("TOTAL DE ACTIVOS");
+    gotoxy(88,11+(acumula)); printf("%.2f",totalAC);
+	
+	acumula++;    	
+	gotoxy(11,11+acumula); printf("PASIVO");
+	acumula++;
+	gotoxy(11,11+acumula);printf("PASIVO CIRCULANTE"); 
+	for(i=38; i<44; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+				totalPAScirculante+=comercial[i].saldodeudor;
+				suma1degeneral+=comercial[i].saldodeudor;
+
+			}
+			else{
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totalPAScirculante+=comercial[i].saldoacreedor;
+				suma1degeneral+=comercial[i].saldoacreedor;
+
+			}
+		}
+	}
+	acumula++;
+	
+	gotoxy(11,11+(acumula)); printf("TOT. PAS. CIRCULANTE");
+    gotoxy(69,11+(acumula)); printf("%.2f",totalPAScirculante);	
+	//15,25,27,36,38,44,46,48,50.51
+	acumula++;
+	gotoxy(11,11+(acumula));printf("PASIVO FIJO"); 
+	for(i=46; i<48; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+	       	   	totalPASfijo+=comercial[i].saldodeudor;
+	       	   	suma1degeneral+=comercial[i].saldodeudor;
+			}
+			else{
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totalPASfijo+=comercial[i].saldoacreedor;
+								suma1degeneral+=comercial[i].saldoacreedor;
+
+			}
+		}
+	}
+	acumula++;
+	
+	gotoxy(11,11+(acumula)); printf("TOT. PAS. FIJO");
+    gotoxy(69,11+(acumula)); printf("%.2f",totalPASfijo);	
+    	
+	acumula++;
+	gotoxy(11,11+(acumula));printf("PASIVO DIFERIDO"); 
+	for(i=50; i<51; i++ ){
+        if (comercial[i].debe[0]>0 || comercial[i].haber[0]>0){
+			acumula++;
+	       	gotoxy (11,11+acumula); puts(comercial[i].cuenta);
+	       	if(comercial[i].saldodeudor>0){
+	       	   	gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldodeudor);
+	       	   	totalPASdiferido+=comercial[i].saldodeudor;
+	       	   	suma1degeneral+=comercial[i].saldodeudor;
+			}
+			else{
+				gotoxy(51,11+acumula);printf("%.2f",comercial[i].saldoacreedor);
+				totalPASdiferido+=comercial[i].saldoacreedor;
+				suma1degeneral+=comercial[i].saldoacreedor;
+
+			}
+		}
+	}
+	acumula++;
+	gotoxy(11,11+(acumula)); printf("TOT. PAS. DIFERIDO");
+	gotoxy(69,11+(acumula)); printf("%.2f",totalPASdiferido);
+        	
+	acumula++;
+	totalPAS=totalPAScirculante+totalPASfijo+totalPASdiferido;	
+    gotoxy(11,11+(acumula)); printf("TOTAL DE PASIVOS");
+    gotoxy(88,11+(acumula)); printf("%.2f",totalPAS);
+    
+    suma2degeneral=totaAClfijo+totalACcirculante+totalACdiferido+totalPAScirculante+totalPASdiferido+totalPASfijo;
+    suma3degeneral=totalAC+totalPAS;
+    
+	acumula++;
+    acumula++;
+	gotoxy(11,11+(acumula)); printf("SUMA");
+    
+    	gotoxy(51,11+acumula);printf("%.2f",suma1degeneral);
+        gotoxy(69,11+(acumula)); printf("%.2f",suma2degeneral);
+        gotoxy(88,11+(acumula)); printf("%.2f",suma3degeneral);			
+	
+	getch();
+}
+
+
+void comercialtargetasdealmacen(){
+   int x;
+   int z;
+   float existencia=0,saldo=0,existencia1=0,saldo1=0,existencia2=0,saldo2=0;
+   float existencia3=0,saldo3=0,existencia4=0,saldo4=0;
+   if(p>0)   
+    {
+    	mostrarempresa();
+    	if(pa>=1){
+    		for(z=0; z<pa; z++){
+    			gotoxy(40,4);printf("%s",subcuenta[0]);
+    			if(merdebe[z]>merhaber[z]){
+    				gotoxy(28,10+z);printf("%.0f",piezas[z]);
+	    			existencia=existencia+piezas[z];
+	    			gotoxy(43,10+z);printf("%.0f",existencia);
+	    			gotoxy(50,10+z);printf("%.2f",precio[z]);
+	    			gotoxy(66,10+z);printf("%.2f",merdebe[z]);
+	    			gotoxy(81,10+z);printf("%.2f",merhaber[z]);
+	    			saldo=saldo+merdebe[z];
+	    			gotoxy(95,10+z);printf("%.2f",saldo);
+	    			medi=saldo/existencia;
+	    			gotoxy(58,10+z);printf("%d",medi);	
+					n++;
+				}
+				else{
+					gotoxy(36,10+z);printf("%.2f",piezas[z]);
+	    			existencia=existencia-piezas[z];
+	    			gotoxy(43,10+z);printf("%.2f",existencia);
+	    			gotoxy(50,10+z);printf("%.2f",precio[z]);
+	    			gotoxy(66,10+z);printf("%.2f",merdebe[z]);
+	    			gotoxy(81,10+z);printf("%.2f",merhaber[z]);
+	    			saldo=saldo-merhaber[z];
+	    			gotoxy(95,10+z);printf("%.2f",saldo);
+				}
+    			
+			}
+		}
+		if(pe>=1){
+			for(z=0; z<pe; z++){
+				if(merdebe1[z]>merhaber1[z]){
+    				gotoxy(28,40+z);printf("%.0f",piezas1[z]);
+	    			existencia1=existencia1+piezas1[z];
+	    			gotoxy(43,40+z);printf("%.0f",existencia1);
+	    			gotoxy(50,40+z);printf("%.2f",precio1[z]);
+	    			gotoxy(66,40+z);printf("%.2f",merdebe1[z]);
+	    			gotoxy(81,40+z);printf("%.2f",merhaber1[z]);
+	    			saldo1=saldo1+merdebe1[z];
+	    			gotoxy(95,40+z);printf("%.2f",saldo1);
+	    			medi1=saldo1/existencia1;
+	    			gotoxy(58,40+z);printf("%d",medi1);	
+					n1++;
+				}
+				else{
+					gotoxy(36,40+z);printf("%.2f",piezas1[z]);
+	    			existencia1=existencia1-piezas1[z];
+	    			gotoxy(43,40+z);printf("%.2f",existencia1);
+	    			gotoxy(50,40+z);printf("%.2f",precio1[z]);
+	    			gotoxy(66,40+z);printf("%.2f",merdebe1[z]);
+	    			gotoxy(81,40+z);printf("%.2f",merhaber1[z]);
+	    			saldo1=saldo1-merhaber1[z];
+	    			gotoxy(95,40+z);printf("%.2f",saldo1);
+				}
+    			
+			}
+		}
+    	if(pi>=1){
+			for(z=0; z<pi; z++){
+				if(merdebe2[z]>merhaber2[z]){
+    				gotoxy(28,70+z);printf("%.0f",piezas2[z]);
+	    			existencia2=existencia2+piezas2[z];
+	    			gotoxy(43,70+z);printf("%.0f",existencia2);
+	    			gotoxy(50,70+z);printf("%.2f",precio2[z]);
+	    			gotoxy(66,70+z);printf("%.2f",merdebe2[z]);
+	    			gotoxy(81,70+z);printf("%.2f",merhaber2[z]);
+	    			saldo2=saldo2+merdebe2[z];
+	    			gotoxy(95,70+z);printf("%.2f",saldo2);
+	    			medi2=saldo2/existencia2;
+	    			gotoxy(58,70+z);printf("%d",medi2);	
+					n2++;
+				}
+				else{
+					gotoxy(36,70+z);printf("%.2f",piezas2[z]);
+	    			existencia2=existencia2-piezas2[z];
+	    			gotoxy(43,70+z);printf("%.2f",existencia2);
+	    			gotoxy(50,70+z);printf("%.2f",precio2[z]);
+	    			gotoxy(66,70+z);printf("%.2f",merdebe2[z]);
+	    			gotoxy(81,70+z);printf("%.2f",merhaber2[z]);
+	    			saldo2=saldo2-merhaber2[z];
+	    			gotoxy(95,70+z);printf("%.2f",saldo2);
+				}
+			}
+		}
+    	if(po>=1){
+			for(z=0; z<po; z++){
+				if(merdebe3[z]>merhaber3[z]){
+    				gotoxy(28,100+z);printf("%.0f",piezas3[z]);
+	    			existencia3=existencia3+piezas3[z];
+	    			gotoxy(43,100+z);printf("%.0f",existencia3);
+	    			gotoxy(50,100+z);printf("%.2f",precio3[z]);
+	    			gotoxy(66,100+z);printf("%.2f",merdebe3[z]);
+	    			gotoxy(81,100+z);printf("%.2f",merhaber3[z]);
+	    			saldo3=saldo3+merdebe3[z];
+	    			gotoxy(95,100+z);printf("%.2f",saldo3);
+	    			medi3=saldo3/existencia3;
+	    			gotoxy(58,100+z);printf("%d",medi3);	
+					n3++;
+				}
+				else{
+					gotoxy(36,100+z);printf("%.2f",piezas3[z]);
+	    			existencia3=existencia3-piezas3[z];
+	    			gotoxy(43,100+z);printf("%.2f",existencia3);
+	    			gotoxy(50,100+z);printf("%.2f",precio3[z]);
+	    			gotoxy(66,100+z);printf("%.2f",merdebe3[z]);
+	    			gotoxy(81,100+z);printf("%.2f",merhaber3[z]);
+	    			saldo3=saldo3-merhaber3[z];
+	    			gotoxy(95,100+z);printf("%.2f",saldo3);
+				}
+			}
+		}
+		if(pu>=1){
+			for(z=0; z<pu; z++){
+				if(merdebe4[z]>merhaber4[z]){
+    				gotoxy(28,130+z);printf("%.0f",piezas4[z]);
+	    			existencia4=existencia4+piezas4[z];
+	    			gotoxy(43,130+z);printf("%.0f",existencia4);
+	    			gotoxy(50,130+z);printf("%.2f",precio4[z]);
+	    			gotoxy(66,130+z);printf("%.2f",merdebe4[z]);
+	    			gotoxy(81,130+z);printf("%.2f",merhaber4[z]);
+	    			saldo4=saldo4+merdebe4[z];
+	    			gotoxy(95,130+z);printf("%.2f",saldo4);
+	    			medi4=saldo4/existencia4;
+	    			gotoxy(58,130+z);printf("%d",medi4);	
+					n4++;
+				}
+				else{
+					gotoxy(36,130+z);printf("%.2f",piezas4[z]);
+	    			existencia4=existencia4-piezas4[z];
+	    			gotoxy(43,130+z);printf("%.2f",existencia4);
+	    			gotoxy(50,130+z);printf("%.2f",precio4[z]);
+	    			gotoxy(66,130+z);printf("%.2f",merdebe4[z]);
+	    			gotoxy(81,130+z);printf("%.2f",merhaber4[z]);
+	    			saldo4=saldo4-merhaber4[z];
+	    			gotoxy(95,130+z);printf("%.2f",saldo4);
+				}
+			}
+		}
+	    for(z=0; z<p; z++)
+	    {
+	    	x=z*30;
+	    	margen(10,5+x,110,28+x);
+			margen(10,5+x,110,9+x);
+		
+			margen(27,5+x,110,28+x);
+			margen(19,5+x,110,28+x);
+			gotoxy(12,7+x); printf("Fecha");
+			gotoxy(22,7+x);printf("Fact");
+				
+			margen(49,5+x,110,28+x);
+		    margen(27,5+x,49,7+x);
+		    margen(27,7+x,34,28+x);
+		    margen(27,7+x,41,28+x);
+		    gotoxy(35,6+x); printf("Unidades");
+		    gotoxy(29,8+x);printf("ENT");
+		    gotoxy(36,8+x);printf("SAL");
+		    gotoxy(44,8+x);printf("EXIS");
+		    
+		    margen(10,5+x,63,28+x);
+			margen(49,5+x,63,7+x);
+			gotoxy(54,6+x); printf("Costos");
+			margen(49,7+x,56,28+x);
+			//gotoxy(51,8);printf("EXIS");
+			gotoxy(51,8+x);printf("UNIT");
+			gotoxy(58,8+x);printf("MEDI");
+			
+			margen(63,5+x,110,7+x);
+			margen(63,7+x,78,28+x);
+			margen(63,7+x,93,28+x);
+			gotoxy(82,6+x); printf("Valores");
+			gotoxy(69,8+x);printf("DEBE");
+			gotoxy(84,8+x);printf("HABER");
+			gotoxy(98,8+x);printf("SALDO");
+		}
+	}
+	else
+	{
+		gotoxy((80-27)/2,12);printf("NO HAS INGRESADO MERCANCIAS");
+	}
+	getch();
+}
+
+void comercialestadoderesultados(){
+		system("cls");
+	mostrarempresa();
+	float ventas=0, devoluciones=0, ventasN=0, compras=0, gastosdecompras=0;
+	float comprastotales=0, devoluiconesyrebajas=0, comprasnetas=0;
+	float totaldemercancias=0, costodeventas=0,inventafinal=0,acumu1=0,acumula1=0,acumu2=0,acumula2=0,acumu3=0,acumula3=0,acumu4=0,acumula4=0,acumu5=0,acumula5=0;
+	int i,f;
+	movimientoacreedor=0;
+	movimientodeudor=0;
+	for (i=1; i<13;i++){
+		margen (18,5,80,42);
+		margen (65,5,80,42);
+		margen (18,5+(i*3),80,42);
+		margen (65,5+(i*3),80,42);
+	}
+	for (f=0; f<20; f++){
+	   if(comercial[59].debe[f]>0){
+	     movimientodeudor+=comercial[59].debe[f];   
+		}
+		if(comercial[59].haber[f]>0){
+		  movimientoacreedor+=comercial[59].haber[f];	
+
+		}
+		ventas=movimientodeudor-movimientoacreedor;
+	}
+	movimientoacreedor=0;
+	movimientodeudor=0;
+	for (f=0; f<20; f++){
+	   if(comercial[60].debe[f]>0){
+	     movimientodeudor+=comercial[60].debe[f];   
+		}
+		if(comercial[60].haber[f]>0){
+		  movimientoacreedor+=comercial[60].haber[f];	
+
+		}
+		devoluciones=movimientodeudor-movimientoacreedor;
+	}
+	movimientoacreedor=0;
+	movimientodeudor=0;
+	for (f=0; f<20; f++){
+	   if(comercial[64].debe[f]>0){
+	     movimientodeudor+=comercial[64].debe[f];   
+		}
+		if(comercial[64].haber[f]>0){
+		  movimientoacreedor+=comercial[64].haber[f];	
+
+		}
+		gastosdecompras=movimientodeudor-movimientoacreedor;
+	}
+	movimientoacreedor=0;
+	movimientodeudor=0;
+	for (f=0; f<20; f++){
+	   if(comercial[65].debe[f]>0){
+	     movimientodeudor+=comercial[65].debe[f];   
+		}
+		if(comercial[65].haber[f]>0){
+		  movimientoacreedor+=comercial[65].haber[f];	
+
+		}
+		devoluiconesyrebajas=movimientodeudor-movimientoacreedor;
+	}
+	for (i=0;i<20; i++){
+		acumu1+=merdebe[i];
+		acumula1+=merhaber[i];
+		acumu2+=merdebe1[i];
+		acumula2+=merhaber1[i];
+		acumu3+=merdebe2[i];
+		acumula3+=merhaber2[i];
+		acumu4+=merdebe3[i];
+		acumula4+=merhaber3[i];
+		acumu5+=merdebe4[i];
+		acumula5+=merhaber4[i];
+    }
+    
+	inventafinal=(acumu1-acumula1)+(acumu2-acumula2)+(acumu3-acumula3)+(acumu4-acumula4)+(acumu5-acumula5);
+	
+	
+	gotoxy(20,7); printf("    Ventas o ingresos totales ");
+	gotoxy(71,7); printf ("%.0f", ventas);
+	gotoxy(20,8); printf("(-)  Devoluciones y rebajas sobre/ventas ");
+	gotoxy(71,8);printf ("%.0f", devoluciones);
+	ventasN=ventas-devoluciones;
+	gotoxy(20,9); printf("(=)  Ventas netas ");	
+	gotoxy(71,9);printf ("%.0f ",ventasN);
+	gotoxy(20,10);printf("(+)  Gastos de compras ");
+	gotoxy(71,10);printf ("%.0f", gastosdecompras);
+	comprastotales=ventasN+gastosdecompras;
+	gotoxy(20,11);printf("(=)  Compras totales  ");
+	gotoxy(71,11);printf ("%.0f", comprastotales);
+	gotoxy(20,12);printf("(-)  Devoluciones y rebajas s/compras ");
+	gotoxy(71,12);printf ("%.0f",devoluiconesyrebajas);
+	comprasnetas=comprastotales-devoluiconesyrebajas;
+	gotoxy(20,13);printf("(=)  Compras netas ");
+    gotoxy(71,13);printf ("%.0f", comprasnetas);
+	gotoxy(20,14);printf("(+)  Inventario inicial  ");
+	gotoxy(71,14);printf ("%.0f",inventarioinicial);
+	totaldemercancias=comprasnetas+inventarioinicial;
+	gotoxy(20,15);printf("(=)  Total de mercancias ");
+	gotoxy(71,15);printf ("%.0f",totaldemercancias);
+	gotoxy(20,16);printf("(-)  Inventario final ");
+	gotoxy(71,16);printf ("%.0f",inventafinal);
+    costodeventas=totaldemercancias-inventafinal;
+	gotoxy(20,17);printf("(=)  Costo de ventas  ");
+	gotoxy(71,17);printf ("%.0f",costodeventas);
+	gotoxy(20,18);printf("(=)  Utilidad o perdida bruta ");					
+	gotoxy(71,18);printf ("%.0f",costodeventas);
+  
+	getch();
+}
+void borar()
+{
+	
+	int q;
+	for(q=0; q<40; q++)
+	{
+		gotoxy(96,2+q);printf("                                    ");
+	}
+}
